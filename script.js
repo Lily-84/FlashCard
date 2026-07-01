@@ -1,196 +1,17 @@
-const LANG = {
-    en: {
-        appName: 'FlashCard',
-        appTag: 'Language',
-        createSet: '+ Create Set',
-        createSetTitle: '📦 Create New Set',
-        setName: 'Set Name *',
-        sourceLang: 'Source Language *',
-        targetLang: 'Target Language *',
-        cancel: 'Cancel',
-        create: 'Create Set',
-        editSet: '✏️ Edit Set',
-        save: 'Save Changes',
-        deleteSetConfirm: 'Are you sure you want to delete this set and all its cards?',
-        deleteCardConfirm: 'Delete this card?',
-        addCard: '➕ Add New Card',
-        word: 'Word *',
-        meaning: 'Meaning *',
-        example: 'Example',
-        exampleTrans: 'Example Translation',
-        add: 'Add Card',
-        importCSV: '📥 Import CSV',
-        exportCSV: '📤 Export CSV',
-        csvPlaceholder: 'word,meaning,example,example translation\napple,quả táo,I eat an apple,Tôi ăn một quả táo\nbook,sách,I read a book,Tôi đọc sách',
-        csvHint: 'Format: <strong>word, meaning, example, example translation</strong> (example and translation can be empty). Each line is a card.',
-        import: 'Import',
-        noCards: 'No cards yet. Add cards or import CSV.',
-        edit: '✏️',
-        delete: '🗑️',
-        study: '🎯 Study',
-        view: '📖 View',
-        back: '← Back',
-        remainingCards: 'remaining cards',
-        studyOptions: 'Study Options',
-        cardCount: 'Number of cards per batch',
-        all: 'All',
-        studyMode: 'Study order',
-        random: '🎲 Random',
-        topDown: '⬇️ Top-down',
-        bottomUp: '⬆️ Bottom-up',
-        startStudy: 'Start Study',
-        direction: 'Show',
-        wordFirst: 'Word first',
-        meaningFirst: 'Meaning first',
-        frontLabelWord: 'Word',
-        frontLabelMeaning: 'Meaning',
-        backLabelWord: 'Word',
-        backLabelMeaning: 'Meaning',
-        flipHint: '👆 Tap card to flip',
-        showExample: '📝 Show example',
-        hideExample: '📝 Hide example',
-        learned: 'Learned',
-        notLearned: 'Not learned',
-        markLearned: '✅ Learned',
-        markNotLearned: '❌ Not learned',
-        unmark: '🔄 Unmark',
-        previous: '◀ Previous',
-        flip: '🔄 Flip',
-        next: 'Next ▶',
-        finishBatch: '✅ Finish this batch',
-        batchSummary: 'Batch Summary',
-        continue: 'Next Cards',
-        repeat: '🔄 Repeat',
-        retakeBatch: '🔄 Retake this batch',
-        done: '✅ Done',
-        finalSummary: '🎉 Study Complete!',
-        overallStats: 'Overall Stats',
-        remaining: 'Remaining',
-        noMoreCards: 'No more cards in this set.',
-        confirmExit: 'Are you sure you want to exit current study session?',
-        speak: '🔊',
-        deleteSet: 'Delete Set',
-        favorite: '⭐',
-        onlyFavorites: 'Only favorites',
-        noFavorites: 'No favorite cards in this set.',
-        editCard: '✏️ Edit Card',
-        saveCard: 'Save Card',
-        moveUp: '⬆',
-        moveDown: '⬇',
-        exportSuccess: 'Exported {count} cards successfully.',
-        exportFail: 'No cards to export.',
-        addNewCardSet: '+ Add new set',
-        importAll: '📥 Import All Data',
-        exportAll: '📤 Export All Data',
-        importAllDesc: 'Import all sets and cards from a JSON file',
-        exportAllDesc: 'Export all sets and cards to a JSON file',
-        dropOrClick: 'Drop your JSON file here or click to select',
-        importSuccess: 'Imported {count} sets successfully!',
-        importFail: 'Invalid data format. Please check your JSON file.',
-        chooseFile: 'Choose File',
-    },
-    vi: {
-        appName: 'FlashCard',
-        appTag: 'Ngôn Ngữ',
-        createSet: '+ Tạo bộ thẻ',
-        createSetTitle: '📦 Tạo bộ thẻ mới',
-        setName: 'Tên bộ thẻ *',
-        sourceLang: 'Ngôn ngữ gốc *',
-        targetLang: 'Ngôn ngữ dịch *',
-        cancel: 'Hủy',
-        create: 'Tạo bộ thẻ',
-        editSet: '✏️ Sửa bộ thẻ',
-        save: 'Lưu thay đổi',
-        deleteSetConfirm: 'Bạn có chắc muốn xóa bộ thẻ này và tất cả thẻ bên trong?',
-        deleteCardConfirm: 'Xóa thẻ này?',
-        addCard: '➕ Thêm thẻ mới',
-        word: 'Từ *',
-        meaning: 'Nghĩa *',
-        example: 'Ví dụ',
-        exampleTrans: 'Dịch ví dụ',
-        add: 'Thêm thẻ',
-        importCSV: '📥 Import CSV',
-        exportCSV: '📤 Xuất CSV',
-        csvPlaceholder: 'từ,nghĩa,ví dụ,dịch ví dụ\napple,quả táo,I eat an apple,Tôi ăn một quả táo\nbook,sách,I read a book,Tôi đọc sách',
-        csvHint: 'Định dạng: <strong>từ, nghĩa, ví dụ, dịch ví dụ</strong> (ví dụ và dịch ví dụ có thể để trống). Mỗi dòng là một thẻ.',
-        import: 'Import',
-        noCards: 'Chưa có thẻ nào. Hãy thêm thẻ hoặc import CSV.',
-        edit: '✏️',
-        delete: '🗑️',
-        study: '🎯 Ôn',
-        view: '📖 Xem',
-        back: '← Quay lại',
-        remainingCards: 'thẻ còn lại',
-        studyOptions: 'Tùy chọn ôn',
-        cardCount: 'Số thẻ mỗi cụm',
-        all: 'Tất cả',
-        studyMode: 'Thứ tự ôn',
-        random: '🎲 Ngẫu nhiên',
-        topDown: '⬇️ Từ trên xuống',
-        bottomUp: '⬆️ Từ dưới lên',
-        startStudy: 'Bắt đầu ôn',
-        direction: 'Hiển thị',
-        wordFirst: 'Từ trước',
-        meaningFirst: 'Nghĩa trước',
-        frontLabelWord: 'Từ vựng',
-        frontLabelMeaning: 'Nghĩa',
-        backLabelWord: 'Từ vựng',
-        backLabelMeaning: 'Nghĩa',
-        flipHint: '👆 Nhấn vào thẻ để lật',
-        showExample: '📝 Xem ví dụ',
-        hideExample: '📝 Ẩn ví dụ',
-        learned: 'Đã thuộc',
-        notLearned: 'Chưa thuộc',
-        markLearned: '✅ Đã thuộc',
-        markNotLearned: '❌ Chưa thuộc',
-        unmark: '🔄 Đánh lại',
-        previous: '◀ Trước',
-        flip: '🔄 Lật',
-        next: 'Sau ▶',
-        finishBatch: '✅ Kết thúc cụm',
-        batchSummary: 'Kết thúc cụm',
-        continue: 'Học tiếp',
-        repeat: '🔄 Làm lại',
-        retakeBatch: '🔄 Học lại cụm này',
-        done: '✅ Hoàn thành',
-        finalSummary: '🎉 Hoàn thành!',
-        overallStats: 'Thống kê tổng',
-        remaining: 'Còn lại',
-        noMoreCards: 'Không còn thẻ nào trong bộ này.',
-        confirmExit: 'Bạn có chắc muốn thoát phiên ôn hiện tại?',
-        speak: '🔊',
-        deleteSet: 'Xóa bộ thẻ',
-        favorite: '⭐',
-        onlyFavorites: 'Chỉ từ yêu thích',
-        noFavorites: 'Không có thẻ yêu thích nào trong bộ này.',
-        editCard: '✏️ Sửa thẻ',
-        saveCard: 'Lưu thẻ',
-        moveUp: '⬆',
-        moveDown: '⬇',
-        exportSuccess: 'Đã xuất {count} thẻ thành công.',
-        exportFail: 'Không có thẻ nào để xuất.',
-        addNewCardSet: '+ Thêm bộ thẻ',
-        importAll: '📥 Nhập toàn bộ',
-        exportAll: '📤 Xuất toàn bộ',
-        importAllDesc: 'Nhập tất cả bộ thẻ và thẻ từ file JSON',
-        exportAllDesc: 'Xuất tất cả bộ thẻ và thẻ ra file JSON',
-        dropOrClick: 'Thả file JSON vào đây hoặc nhấn để chọn',
-        importSuccess: 'Đã nhập {count} bộ thẻ thành công!',
-        importFail: 'Dữ liệu không hợp lệ. Vui lòng kiểm tra file JSON.',
-        chooseFile: 'Chọn file',
-    }
-};
+import Localization from "./localization.js";
 
 let currentLanguage = 'en';
 
 function t(key) {
-    return LANG[currentLanguage][key] || key;
+    //return LANG[currentLanguage][key] || key;
+    return Localization.t(key);
 }
 
 function toggleLanguage() {
     currentLanguage = (currentLanguage === 'en') ? 'vi' : 'en';
     const btn = document.getElementById('langToggle');
     btn.textContent = currentLanguage === 'en' ? '🇻🇳 Tiếng Việt' : '🇬🇧 English';
+    Localization.setLanguage(currentLanguage);
     render();
 }
 
@@ -467,6 +288,8 @@ function render() {
         attachStudyEvents();
     }
     document.getElementById('btnCreateSet').innerHTML = t('addNewCardSet');
+    document.getElementById('btnExportAllModal').innerHTML = t('exportAll');
+    document.getElementById('btnImportAllModal').innerHTML = t('importAll');
 }
 
 // ============================================================
@@ -491,7 +314,7 @@ function renderDashboard() {
     for (const set of sets) {
         const count = set.cards ? set.cards.length : 0;
         html += `
-                    <div class="set-card">
+                    <div class="set-card" onclick="viewSet('${set.id}')">
                         <h3>${escapeHtml(set.name)}</h3>
                         <div class="lang-tags">
                             <span>${escapeHtml(getLanguageLabel(set.sourceLang))}</span>
@@ -1233,7 +1056,7 @@ function openImportCSVModal(setId) {
                     <div class="hint" style="margin-top:12px;">${t('csvHint')}</div>
                 </div>
                 <div class="form-group">
-                    <label>Hoặc nhập trực tiếp</label>
+                    <label>${t('inputDataDirectly')}</label>
                     <textarea id="modalCsvInput" placeholder="${t('csvPlaceholder')}" style="min-height:150px;"></textarea>
                 </div>
                 <div class="modal-actions">
@@ -1742,6 +1565,8 @@ window.exportAllData = exportAllData;
 // ============================================================
 //  INIT
 // ============================================================
+await Localization.load("./localization.csv");
+
 render();
 
 document.addEventListener('keydown', (e) => {

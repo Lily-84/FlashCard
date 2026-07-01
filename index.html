@@ -15,8 +15,8 @@
             </div>
             <div class="header-actions">
                 <button class="btn btn-toggle" id="langToggle" onclick="toggleLanguage()">🇻🇳 Tiếng Việt</button>
-                <button class="btn btn-secondary" onclick="exportAllData()">📤 Xuất toàn bộ</button>
-                <button class="btn btn-secondary" onclick="openImportAllModal()">📥 Nhập toàn bộ</button>
+                <button class="btn btn-secondary" id="btnExportAllModal" onclick="exportAllData()">📤 Xuất toàn bộ</button>
+                <button class="btn btn-secondary" id="btnImportAllModal" onclick="openImportAllModal()">📥 Nhập toàn bộ</button>
                 <button class="btn btn-primary" id="btnCreateSet" onclick="openCreateSetModal()">+ Tạo bộ thẻ</button>
             </div>
         </header>
@@ -36,7 +36,6 @@
 
     <!-- ===== TOAST CONTAINER ===== -->
     <div class="toast-container" id="toastContainer"></div>
-
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,94 @@
+key,en,vi
+appName,FlashCard,FlashCard
+appTag,Language,Ngôn Ngữ
+createSet,+ Create Set,+ Tạo bộ thẻ
+createSetTitle,📦 Create New Set,📦 Tạo bộ thẻ mới
+setName,Set Name *,Tên bộ thẻ *
+sourceLang,Source Language *,Ngôn ngữ gốc *
+targetLang,Target Language *,Ngôn ngữ dịch *
+cancel,Cancel,Hủy
+create,Create Set,Tạo bộ thẻ
+editSet,✏️ Edit Set,✏️ Sửa bộ thẻ
+save,Save Changes,Lưu thay đổi
+deleteSetConfirm,"Are you sure you want to delete this set and all its cards?","Bạn có chắc muốn xóa bộ thẻ này và tất cả thẻ bên trong?"
+deleteCardConfirm,Delete this card?,Xóa thẻ này?
+addCard,➕ Add New Card,➕ Thêm thẻ mới
+word,Word *,Từ *
+meaning,Meaning *,Nghĩa *
+example,Example,Ví dụ
+exampleTrans,Example Translation,Dịch ví dụ
+add,Add Card,Thêm thẻ
+importCSV,📥 Import CSV,📥 Import CSV
+exportCSV,📤 Export CSV,📤 Xuất CSV
+csvPlaceholder,"word,meaning,example,example translation
+apple,quả táo,I eat an apple,Tôi ăn một quả táo
+book,sách,I read a book,Tôi đọc sách","từ,nghĩa,ví dụ,dịch ví dụ
+apple,quả táo,I eat an apple,Tôi ăn một quả táo
+book,sách,I read sách"
+csvHint,"Format: <strong>word, meaning, example, example translation</strong> (example and translation can be empty). Each line is a card.","Định dạng: <strong>từ, nghĩa, ví dụ, dịch ví dụ</strong> (ví dụ và dịch ví dụ có thể để trống). Mỗi dòng là một thẻ."
+import,Import,Import
+noCards,No cards yet. Add cards or import CSV.,Chưa có thẻ nào. Hãy thêm thẻ hoặc import CSV.
+edit,✏️,✏️
+delete,🗑️,🗑️
+study,🎯 Study,🎯 Ôn
+view,📖 View,📖 Xem
+back,← Back,← Quay lại
+remainingCards,remaining cards,thẻ còn lại
+studyOptions,Study Options,Tùy chọn ôn
+cardCount,Number of cards per batch,Số thẻ mỗi cụm
+all,All,Tất cả
+studyMode,Study order,Thứ tự ôn
+random,🎲 Random,🎲 Ngẫu nhiên
+topDown,⬇️ Top-down,⬇️ Từ trên xuống
+bottomUp,⬆️ Bottom-up,⬆️ Từ dưới lên
+startStudy,Start Study,Bắt đầu ôn
+direction,Show,Hiển thị
+wordFirst,Word first,Từ trước
+meaningFirst,Meaning first,Nghĩa trước
+frontLabelWord,Word,Từ vựng
+frontLabelMeaning,Meaning,Nghĩa
+backLabelWord,Word,Từ vựng
+backLabelMeaning,Meaning,Nghĩa
+flipHint,👆 Tap card to flip,👆 Nhấn vào thẻ để lật
+showExample,📝 Show example,📝 Xem ví dụ
+hideExample,📝 Hide example,📝 Ẩn ví dụ
+learned,Learned,Đã thuộc
+notLearned,Not learned,Chưa thuộc
+markLearned,✅ Learned,✅ Đã thuộc
+markNotLearned,❌ Not learned,❌ Chưa thuộc
+unmark,🔄 Unmark,🔄 Đánh lại
+previous,◀ Previous,◀ Trước
+flip,🔄 Flip,🔄 Lật
+next,Next ▶,Sau ▶
+finishBatch,✅ Finish this batch,✅ Kết thúc cụm
+batchSummary,Batch Summary,Kết thúc cụm
+continue,Next Cards,Học tiếp
+repeat,🔄 Repeat,🔄 Làm lại
+retakeBatch,🔄 Retake this batch,🔄 Học lại cụm này
+done,✅ Done,✅ Hoàn thành
+finalSummary,🎉 Study Complete!,🎉 Hoàn thành!
+overallStats,Overall Stats,Thống kê tổng
+remaining,Remaining,Còn lại
+noMoreCards,No more cards in this set.,Không còn thẻ nào trong bộ này.
+confirmExit,Are you sure you want to exit current study session?,Bạn có chắc muốn thoát phiên ôn hiện tại?
+speak,🔊,🔊
+deleteSet,Delete Set,Xóa bộ thẻ
+favorite,⭐,⭐
+onlyFavorites,Only favorites,Chỉ từ yêu thích
+noFavorites,No favorite cards in this set.,Không có thẻ yêu thích nào trong bộ này.
+editCard,✏️ Edit Card,✏️ Sửa thẻ
+saveCard,Save Card,Lưu thẻ
+moveUp,⬆,⬆
+moveDown,⬇,⬇
+exportSuccess,Exported {count} cards successfully.,Đã xuất {count} thẻ thành công.
+exportFail,No cards to export.,Không có thẻ nào để xuất.
+addNewCardSet,+ Add new set,+ Thêm bộ thẻ
+importAll,📥 Import All Data,📥 Nhập toàn bộ
+exportAll,📤 Export All Data,📤 Xuất toàn bộ
+importAllDesc,Import all sets and cards from a JSON file,Nhập tất cả bộ thẻ và thẻ từ file JSON
+exportAllDesc,Export all sets and cards to a JSON file,Xuất tất cả bộ thẻ và thẻ ra file JSON
+dropOrClick,Drop your JSON file here or click to select,Thả file JSON vào đây hoặc nhấn để chọn
+importSuccess,Imported {count} sets successfully!,Đã nhập {count} bộ thẻ thành công!
+importFail,Invalid data format. Please check your JSON file.,Dữ liệu không hợp lệ. Vui lòng kiểm tra file JSON.
+chooseFile,Choose File,Chọn file
+inputDataDirectly,Or enter data directly,Hoặc nhập dữ liệu trực tiếp
