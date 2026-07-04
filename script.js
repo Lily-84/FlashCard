@@ -1125,3 +1125,11 @@ document.addEventListener('keydown', (e) => {
     // Pass key events to study manager
     studyManager.handleKeyPress(e);
 });
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .then(() => console.log("Service Worker OK"))
+      .catch(err => console.log("SW error:", err));
+  });
+}
