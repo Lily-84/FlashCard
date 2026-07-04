@@ -1,18 +1,51 @@
+// script.js
+// script.js
 import Localization from "./localization.js";
+import studyManager from "./study-manager.js";
+export { 
+    t, toggleLanguage, getLangCode, getLanguageLabel, renderLanguageOptions, 
+    speakText, showToast, openModal, closeModal, exportAllData, 
+    openImportAllModal, handleImportFile, loadData, saveData, generateId,
+    handleLanguageChange
+};
 
 let currentLanguage = 'en';
 
+// Language display names for the dropdown
+const LANGUAGE_DISPLAY = {
+    'en': '🇬🇧 English',
+    'vi': '🇻🇳 Tiếng Việt',
+    'ja': '🇯🇵 日本語',
+    'zh': '🇨🇳 中文',
+    'ko': '🇰🇷 한국어',
+    'es': '🇪🇸 Español',
+    'fr': '🇫🇷 Français',
+    'de': '🇩🇪 Deutsch'
+};
+
 function t(key) {
-    //return LANG[currentLanguage][key] || key;
     return Localization.t(key);
 }
 
-function toggleLanguage() {
-    currentLanguage = (currentLanguage === 'en') ? 'vi' : 'en';
-    const btn = document.getElementById('langToggle');
-    btn.textContent = currentLanguage === 'en' ? '🇻🇳 Tiếng Việt' : '🇬🇧 English';
+function toggleLanguage(lang) {
+    if (lang) {
+        currentLanguage = lang;
+    } else {
+        currentLanguage = (currentLanguage === 'en') ? 'vi' : 'en';
+    }
     Localization.setLanguage(currentLanguage);
+    // Update dropdown
+    const select = document.getElementById('langSelect');
+    if (select) {
+        select.value = currentLanguage;
+    }
     render();
+}
+
+function handleLanguageChange(value) {
+    // Save preference
+    localStorage.setItem('preferred_language', value);
+    toggleLanguage(value);
 }
 
 // ============================================================
@@ -55,26 +88,26 @@ function generateId() {
 //  LANGUAGE OPTIONS
 // ============================================================
 const LANGUAGE_OPTIONS = [
-    { value: 'english', label: 'English' },
-    { value: 'vietnamese', label: 'Tiếng Việt' },
-    { value: 'japanese', label: '日本語' },
-    { value: 'chinese', label: '中文' },
-    { value: 'korean', label: '한국어' },
-    { value: 'spanish', label: 'Español' },
-    { value: 'french', label: 'Français' },
-    { value: 'german', label: 'Deutsch' },
+    { value: 'en', label: '🇬🇧 English' },
+    { value: 'vi', label: '🇻🇳 Tiếng Việt' },
+    { value: 'ja', label: '🇯🇵 日本語' },
+    { value: 'zh', label: '🇨🇳 中文' },
+    { value: 'ko', label: '🇰🇷 한국어' },
+    { value: 'es', label: '🇪🇸 Español' },
+    { value: 'fr', label: '🇫🇷 Français' },
+    { value: 'de', label: '🇩🇪 Deutsch' },
 ];
 
 function getLangCode(langValue) {
     const map = {
-        'english': 'en-US',
-        'vietnamese': 'vi-VN',
-        'japanese': 'ja-JP',
-        'chinese': 'zh-CN',
-        'korean': 'ko-KR',
-        'spanish': 'es-ES',
-        'french': 'fr-FR',
-        'german': 'de-DE'
+        'en': 'en-US',
+        'vi': 'vi-VN',
+        'ja': 'ja-JP',
+        'zh': 'zh-CN',
+        'ko': 'ko-KR',
+        'es': 'es-ES',
+        'fr': 'fr-FR',
+        'de': 'de-DE'
     };
     return map[langValue] || 'en-US';
 }
@@ -88,6 +121,24 @@ function renderLanguageOptions(selected) {
     return LANGUAGE_OPTIONS.map(o =>
         `<option value="${o.value}" ${o.value === selected ? 'selected' : ''}>${o.label}</option>`
     ).join('');
+}
+
+// Render dropdown in header
+function renderHeaderLanguageDropdown() {
+    const select = document.getElementById('langSelect');
+    if (!select) return;
+    
+    // Get saved preference or default to 'en'
+    const savedLang = localStorage.getItem('preferred_language') || 'en';
+    
+    // Build options
+    select.innerHTML = LANGUAGE_OPTIONS.map(o =>
+        `<option value="${o.value}" ${o.value === savedLang ? 'selected' : ''}>${o.label}</option>`
+    ).join('');
+    
+    // Set current language
+    currentLanguage = savedLang;
+    Localization.setLanguage(currentLanguage);
 }
 
 // ============================================================
@@ -273,19 +324,23 @@ function handleImportFile(file) {
 // ============================================================
 let currentView = 'dashboard';
 let currentSetId = null;
-let studyState = null;
 
 function render() {
+    // Check if study is active
+    if (studyManager.studyInstance) {
+        studyManager.renderStudy();
+        return;
+    }
+
     const container = document.getElementById('mainContent');
     if (currentView === 'dashboard') {
         container.innerHTML = renderDashboard();
         attachDashboardEvents();
+        setActiveAppHeader(false);
     } else if (currentView === 'detail') {
         container.innerHTML = renderSetDetail(currentSetId);
         attachDetailEvents();
-    } else if (currentView === 'study') {
-        container.innerHTML = renderStudy();
-        attachStudyEvents();
+        setActiveAppHeader(true);
     }
     document.getElementById('btnCreateSet').innerHTML = t('addNewCardSet');
     document.getElementById('btnExportAllModal').innerHTML = t('exportAll');
@@ -324,7 +379,7 @@ function renderDashboard() {
                         <div class="card-count">${count} ${t('remainingCards')}</div>
                         <div class="actions">
                             <button class="btn btn-primary btn-sm" onclick="viewSet('${set.id}')">${t('view')}</button>
-                            <button class="btn btn-success btn-sm" onclick="startStudy('${set.id}')">${t('study')}</button>
+                            <button class="btn btn-success btn-sm" onclick="window.studyManager.startStudy('${set.id}')">${t('study')}</button>
                             <button class="btn btn-secondary btn-sm" onclick="openEditSetModal('${set.id}')">${t('edit')}</button>
                             <button class="btn btn-danger btn-sm" onclick="deleteSet('${set.id}')">${t('delete')}</button>
                         </div>
@@ -410,7 +465,7 @@ function renderSetDetail(setId) {
                             <span style="font-size:14px;color:#8888a8;">${count} ${t('remainingCards')}</span>
                         </div>
                         <div class="detail-actions">
-                            <button class="btn btn-success" onclick="startStudy('${setId}')">${t('study')}</button>
+                            <button class="btn btn-success" onclick="window.studyManager.startStudy('${setId}')">${t('study')}</button>
                             <button class="btn btn-secondary" onclick="openImportCSVModal('${setId}')">${t('importCSV')}</button>
                             <button class="btn btn-secondary" onclick="exportCSV('${setId}')">${t('exportCSV')}</button>
                             <button class="btn btn-primary" onclick="openAddCardModal('${setId}')">${t('addCard')}</button>
@@ -443,518 +498,6 @@ function renderSetDetail(setId) {
 }
 
 function attachDetailEvents() { }
-
-// ============================================================
-//  STUDY
-// ============================================================
-function renderStudy() {
-    if (!studyState) {
-        return `<div class="card"><p>${t('noCards')}</p><button class="btn btn-back" onclick="goDashboard()">${t('back')}</button></div>`;
-    }
-
-    const {
-        allCards,
-        currentBatch,
-        batchSize,
-        learnedStatus,
-        totalBatches,
-        finished,
-        showExample,
-        flipped,
-        setId,
-        meaningFirst
-    } = studyState;
-
-    if (finished) {
-        const totalLearned = learnedStatus.filter(v => v === true).length;
-        const totalNotLearned = learnedStatus.filter(v => v === false).length;
-        const totalRemaining = allCards.length - totalLearned - totalNotLearned;
-        return `
-                    <div class="card study-container">
-                        <div class="study-summary">
-                            <div class="big-icon">🎉</div>
-                            <h2>${t('finalSummary')}</h2>
-                            <div class="stats">
-                                <div class="stat-item learned">
-                                    <div class="number">${totalLearned}</div>
-                                    <div class="label">${t('learned')}</div>
-                                </div>
-                                <div class="stat-item not-learned">
-                                    <div class="number">${totalNotLearned}</div>
-                                    <div class="label">${t('notLearned')}</div>
-                                </div>
-                                <div class="stat-item remaining">
-                                    <div class="number">${totalRemaining}</div>
-                                    <div class="label">${t('remaining')}</div>
-                                </div>
-                            </div>
-                            <div class="actions">
-                                <button class="btn btn-success" onclick="restartStudy()">${t('repeat')}</button>
-                                <button class="btn btn-secondary" onclick="goDashboard()">${t('back')}</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-    }
-
-    const start = currentBatch * batchSize;
-    const end = Math.min(start + batchSize, allCards.length);
-    const batchCards = allCards.slice(start, end);
-    const batchLearned = learnedStatus.slice(start, end);
-    const allMarked = batchLearned.every(v => v !== undefined);
-
-    if (allMarked && currentBatch < totalBatches) {
-        const learnedInBatch = batchLearned.filter(v => v === true).length;
-        const notLearnedInBatch = batchLearned.filter(v => v === false).length;
-        const remainingTotal = allCards.length - learnedStatus.filter(v => v !== undefined).length;
-        const isLastBatch = (currentBatch === totalBatches - 1);
-        return `
-                    <div class="card study-container">
-                        <div class="study-summary">
-                            <div class="big-icon">📊</div>
-                            <h2>${t('batchSummary')}</h2>
-                            <div class="stats">
-                                <div class="stat-item learned">
-                                    <div class="number">${learnedInBatch}</div>
-                                    <div class="label">${t('learned')}</div>
-                                </div>
-                                <div class="stat-item not-learned">
-                                    <div class="number">${notLearnedInBatch}</div>
-                                    <div class="label">${t('notLearned')}</div>
-                                </div>
-                                <div class="stat-item remaining">
-                                    <div class="number">${remainingTotal}</div>
-                                    <div class="label">${t('remaining')}</div>
-                                </div>
-                            </div>
-                            <div class="actions">
-                                <button class="btn btn-secondary" onclick="retakeBatch()">${t('retakeBatch')}</button>
-                                ${!isLastBatch ? `<button class="btn btn-primary" onclick="nextBatch()">${t('continue')}</button>` : `<button class="btn btn-success" onclick="finishStudy()">${t('done')}</button>`}
-                                <button class="btn btn-secondary" onclick="exitStudy()">${t('back')}</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-    }
-
-    const currentIndexInBatch = studyState.currentIndexInBatch || 0;
-    const card = batchCards[currentIndexInBatch];
-    if (!card) {
-        return `<div class="card"><p>Error loading card.</p></div>`;
-    }
-
-    const isFlipped = flipped || false;
-    const progress = ((currentBatch * batchSize + currentIndexInBatch + 1) / allCards.length * 100).toFixed(0);
-
-    let frontLabel, backLabel, frontMain, backMain, frontSpeakCode, backSpeakCode;
-    if (meaningFirst) {
-        frontLabel = t('frontLabelMeaning');
-        frontMain = card.meaning;
-        backLabel = t('backLabelWord');
-        backMain = card.word;
-        frontSpeakCode = getTargetLangCode(setId);
-        backSpeakCode = getLangCodeForSet(setId);
-    } else {
-        frontLabel = t('frontLabelWord');
-        frontMain = card.word;
-        backLabel = t('backLabelMeaning');
-        backMain = card.meaning;
-        frontSpeakCode = getLangCodeForSet(setId);
-        backSpeakCode = getTargetLangCode(setId);
-    }
-
-    const exampleText = card.example || '';
-    const exampleTransText = card.exampleTranslation || '';
-    const exampleSpeakCode = getLangCodeForSet(setId);
-    const exampleTransSpeakCode = getTargetLangCode(setId);
-
-    const exampleHtml = `
-                <div class="example-area ${showExample ? 'show' : ''}">
-                    ${exampleText ? `<div class="ex-text">📝 ${escapeHtml(exampleText)} <button class="btn-speak" onclick="event.stopPropagation(); speakText('${escapeHtml(exampleText)}', '${exampleSpeakCode}')" title="${t('speak')}">${t('speak')}</button></div>` : ''}
-                    ${exampleTransText ? `<div class="ex-trans">✏️ ${escapeHtml(exampleTransText)} <button class="btn-speak" onclick="event.stopPropagation(); speakText('${escapeHtml(exampleTransText)}', '${exampleTransSpeakCode}')" title="${t('speak')}">${t('speak')}</button></div>` : ''}
-                </div>
-            `;
-
-    const frontContent = `
-                <div class="card-label">${frontLabel}</div>
-                <div style="display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap;">
-                    <div class="main-text">${escapeHtml(frontMain)}</div>
-                    <button class="btn-speak" onclick="event.stopPropagation(); speakText('${escapeHtml(frontMain)}', '${frontSpeakCode}')" title="${t('speak')}">${t('speak')}</button>
-                </div>
-                <div style="margin-top:8px; display:flex; gap:8px; justify-content:center;">
-                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); toggleExample()">${showExample ? t('hideExample') : t('showExample')}</button>
-                </div>
-                ${exampleHtml}
-                <div class="hint">${t('flipHint')}</div>
-            `;
-
-    const backContent = `
-                <div class="card-label">${backLabel}</div>
-                <div style="display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap;">
-                    <div class="main-text" style="font-size:24px;">${escapeHtml(backMain)}</div>
-                    <button class="btn-speak" onclick="event.stopPropagation(); speakText('${escapeHtml(backMain)}', '${backSpeakCode}')" title="${t('speak')}">${t('speak')}</button>
-                </div>
-                <div style="margin-top:8px; display:flex; gap:8px; justify-content:center;">
-                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); toggleExample()">${showExample ? t('hideExample') : t('showExample')}</button>
-                </div>
-                ${exampleHtml}
-                <div class="hint">${t('flipHint')}</div>
-            `;
-
-    let dots = '';
-    for (let i = 0; i < allCards.length; i++) {
-        let cls = 'dot';
-        if (i === start + currentIndexInBatch) cls += ' active';
-        else if (learnedStatus[i] === true) cls += ' done';
-        else if (learnedStatus[i] === false) cls += ' wrong';
-        dots += `<span class="${cls}"></span>`;
-    }
-
-    const isMarked = learnedStatus[start + currentIndexInBatch] !== undefined;
-    let markButtons = '';
-    if (isMarked) {
-        const status = learnedStatus[start + currentIndexInBatch];
-        markButtons = `
-                    <span style="color:#8888a8; margin-right:8px;">${status ? '✅' : '❌'} ${status ? t('learned') : t('notLearned')}</span>
-                    <button class="btn btn-secondary btn-sm" onclick="unmarkCard()">${t('unmark')}</button>
-                `;
-    } else {
-        markButtons = `
-                    <button class="btn btn-danger btn-sm" onclick="markCard(false)">${t('markNotLearned')}</button>
-                    <button class="btn btn-success btn-sm" onclick="markCard(true)">${t('markLearned')}</button>
-                `;
-    }
-
-    const isFirst = (currentBatch === 0 && currentIndexInBatch === 0);
-    const isLast = (currentBatch === totalBatches - 1 && currentIndexInBatch === batchCards.length - 1);
-
-    return `
-                <div class="study-container">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-                        <button class="btn-back" onclick="exitStudy()">${t('back')}</button>
-                        <span style="font-size:14px;color:#8888a8;">${t('remainingCards')}: ${allCards.length - learnedStatus.filter(v => v !== undefined).length}</span>
-                    </div>
-
-                    <div class="flashcard-wrapper" onclick="flipCard()">
-                        <div class="flashcard ${isFlipped ? 'flipped' : ''}">
-                            <div class="flashcard-face flashcard-front">${frontContent}</div>
-                            <div class="flashcard-face flashcard-back">${backContent}</div>
-                        </div>
-                    </div>
-
-                    <div class="flashcard-progress">${dots}</div>
-
-                    <div class="study-counter">${(currentBatch * batchSize + currentIndexInBatch + 1)} / ${allCards.length} (${progress}%)</div>
-
-                    <div class="study-actions">
-                        ${markButtons}
-                    </div>
-                    <div class="study-actions-bottom">
-                        <button class="btn btn-secondary" onclick="finishBatch()">${t('finishBatch')}</button>
-                    </div>
-
-                    <div class="study-nav">
-                        <button class="btn btn-secondary" onclick="prevCard()" ${isFirst ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>${t('previous')}</button>
-                        <button class="btn btn-primary" onclick="flipCard()">${t('flip')}</button>
-                        <button class="btn btn-secondary" onclick="nextCard()" ${isLast ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>${t('next')}</button>
-                    </div>
-                </div>
-            `;
-}
-
-function attachStudyEvents() {
-    document.addEventListener('keydown', handleStudyKeys);
-}
-
-function handleStudyKeys(e) {
-    if (currentView !== 'study') {
-        document.removeEventListener('keydown', handleStudyKeys);
-        return;
-    }
-    if (e.key === 'ArrowRight' || e.key === ' ') {
-        e.preventDefault();
-        if (e.key === ' ') flipCard();
-        else nextCard();
-    } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        prevCard();
-    } else if (e.key === 'f' || e.key === 'F') {
-        e.preventDefault();
-        flipCard();
-    }
-}
-
-// ============================================================
-//  STUDY ACTIONS
-// ============================================================
-function startStudy(setId) {
-    const data = loadData();
-    const set = data.sets.find(s => s.id === setId);
-    if (!set) {
-        showToast('Set not found.', 'error');
-        return;
-    }
-    const cards = set.cards || [];
-    if (cards.length === 0) {
-        showToast('No cards in this set.', 'error');
-        return;
-    }
-
-    const hasFavorites = cards.some(c => c.favorite);
-
-    openModal(`
-                <div class="modal-header">
-                    <h2>${t('studyOptions')}</h2>
-                    <button class="modal-close" onclick="closeModal()">&times;</button>
-                </div>
-                <div class="form-group">
-                    <label>${t('cardCount')}</label>
-                    <select id="studyCount">
-                        ${[5, 6, 7, 8, 9, 10].map(n => `<option value="${n}" ${n === 5 ? 'selected' : ''}>${n}</option>`).join('')}
-                        <option value="all">${t('all')} (${cards.length})</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>${t('studyMode')}</label>
-                    <select id="studyMode">
-                        <option value="random">${t('random')}</option>
-                        <option value="top-down" selected>${t('topDown')}</option>
-                        <option value="bottom-up">${t('bottomUp')}</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>${t('direction')}</label>
-                    <select id="studyDirection">
-                        <option value="word-first">${t('wordFirst')}</option>
-                        <option value="meaning-first" selected>${t('meaningFirst')}</option>
-                    </select>
-                </div>
-                ${hasFavorites ? `
-                <div class="form-group" style="display:flex;align-items:center;gap:12px;padding:8px 0;">
-                    <input type="checkbox" id="onlyFavorites" style="width:auto;height:20px;accent-color:#7c7cf8;" />
-                    <label for="onlyFavorites" style="margin:0;font-weight:600;color:#b0b0d0;">${t('onlyFavorites')}</label>
-                </div>
-                ` : ''}
-                <div class="modal-actions">
-                    <button class="btn btn-secondary" onclick="closeModal()">${t('cancel')}</button>
-                    <button class="btn btn-success" onclick="handleStartStudy('${setId}')">${t('startStudy')}</button>
-                </div>
-            `);
-}
-
-function handleStartStudy(setId) {
-    const countEl = document.getElementById('studyCount');
-    const modeEl = document.getElementById('studyMode');
-    const directionEl = document.getElementById('studyDirection');
-    const onlyFavoritesEl = document.getElementById('onlyFavorites');
-    const batchSize = countEl.value === 'all' ? Infinity : parseInt(countEl.value, 10);
-    const mode = modeEl.value;
-    const meaningFirst = directionEl.value === 'meaning-first';
-    const onlyFavorites = onlyFavoritesEl ? onlyFavoritesEl.checked : false;
-
-    const data = loadData();
-    const set = data.sets.find(s => s.id === setId);
-    if (!set) {
-        showToast('Set not found.', 'error');
-        closeModal();
-        return;
-    }
-
-    let cards = [...(set.cards || [])];
-    if (cards.length === 0) {
-        showToast('No cards.', 'error');
-        closeModal();
-        return;
-    }
-
-    if (onlyFavorites) {
-        cards = cards.filter(c => c.favorite);
-        if (cards.length === 0) {
-            showToast(t('noFavorites'), 'error');
-            closeModal();
-            return;
-        }
-    }
-
-    if (mode === 'random') {
-        for (let i = cards.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [cards[i], cards[j]] = [cards[j], cards[i]];
-        }
-    } else if (mode === 'bottom-up') {
-        cards.reverse();
-    }
-
-    const actualBatchSize = Math.min(batchSize, cards.length);
-    const totalBatches = Math.ceil(cards.length / actualBatchSize);
-
-    studyState = {
-        setId,
-        allCards: cards,
-        batchSize: actualBatchSize,
-        currentBatch: 0,
-        currentIndexInBatch: 0,
-        learnedStatus: new Array(cards.length).fill(undefined),
-        totalBatches,
-        finished: false,
-        showExample: false,
-        flipped: false,
-        meaningFirst: meaningFirst,
-    };
-
-    closeModal();
-    currentView = 'study';
-    render();
-}
-
-function flipCard() {
-    if (!studyState || studyState.finished) return;
-    studyState.flipped = !studyState.flipped;
-    render();
-}
-
-function toggleExample() {
-    if (!studyState) return;
-    studyState.showExample = !studyState.showExample;
-    render();
-}
-
-function markCard(value) {
-    if (!studyState || studyState.finished) return;
-    const idx = studyState.currentBatch * studyState.batchSize + studyState.currentIndexInBatch;
-    if (idx >= studyState.learnedStatus.length) return;
-    studyState.learnedStatus[idx] = value;
-    const start = studyState.currentBatch * studyState.batchSize;
-    const end = Math.min(start + studyState.batchSize, studyState.learnedStatus.length);
-    const batchLearned = studyState.learnedStatus.slice(start, end);
-    const allMarked = batchLearned.every(v => v !== undefined);
-    if (allMarked) {
-        render();
-    } else {
-        if (studyState.currentIndexInBatch < batchLearned.length - 1) {
-            studyState.currentIndexInBatch++;
-            studyState.flipped = false;
-            studyState.showExample = false;
-        }
-        render();
-    }
-}
-
-function unmarkCard() {
-    if (!studyState || studyState.finished) return;
-    const idx = studyState.currentBatch * studyState.batchSize + studyState.currentIndexInBatch;
-    if (idx >= studyState.learnedStatus.length) return;
-    studyState.learnedStatus[idx] = undefined;
-    render();
-}
-
-function nextCard() {
-    if (!studyState || studyState.finished) return;
-    const batchSize = studyState.batchSize;
-    const start = studyState.currentBatch * batchSize;
-    const batchCards = studyState.allCards.slice(start, start + batchSize);
-    if (studyState.currentIndexInBatch < batchCards.length - 1) {
-        studyState.currentIndexInBatch++;
-        studyState.flipped = false;
-        studyState.showExample = false;
-        render();
-    }
-}
-
-function prevCard() {
-    if (!studyState || studyState.finished) return;
-    if (studyState.currentIndexInBatch > 0) {
-        studyState.currentIndexInBatch--;
-        studyState.flipped = false;
-        studyState.showExample = false;
-        render();
-    }
-}
-
-function finishBatch() {
-    if (!studyState || studyState.finished) return;
-    const start = studyState.currentBatch * studyState.batchSize;
-    const end = Math.min(start + studyState.batchSize, studyState.learnedStatus.length);
-    for (let i = start; i < end; i++) {
-        if (studyState.learnedStatus[i] === undefined) {
-            studyState.learnedStatus[i] = false;
-        }
-    }
-    render();
-}
-
-function nextBatch() {
-    if (!studyState) return;
-    if (studyState.currentBatch < studyState.totalBatches - 1) {
-        studyState.currentBatch++;
-        studyState.currentIndexInBatch = 0;
-        studyState.flipped = false;
-        studyState.showExample = false;
-        render();
-    } else {
-        finishStudy();
-    }
-}
-
-function retakeBatch() {
-    if (!studyState) return;
-    const start = studyState.currentBatch * studyState.batchSize;
-    const end = Math.min(start + studyState.batchSize, studyState.learnedStatus.length);
-    for (let i = start; i < end; i++) {
-        studyState.learnedStatus[i] = undefined;
-    }
-    studyState.currentIndexInBatch = 0;
-    studyState.flipped = false;
-    studyState.showExample = false;
-    render();
-}
-
-function finishStudy() {
-    if (!studyState) return;
-    for (let i = 0; i < studyState.learnedStatus.length; i++) {
-        if (studyState.learnedStatus[i] === undefined) {
-            studyState.learnedStatus[i] = false;
-        }
-    }
-    studyState.finished = true;
-    render();
-}
-
-function restartStudy() {
-    if (!studyState) return;
-    studyState.learnedStatus = new Array(studyState.allCards.length).fill(undefined);
-    studyState.currentBatch = 0;
-    studyState.currentIndexInBatch = 0;
-    studyState.flipped = false;
-    studyState.showExample = false;
-    studyState.finished = false;
-    render();
-}
-
-function exitStudy() {
-    if (!studyState) return;
-    if (!studyState.finished) {
-        if (!confirm(t('confirmExit'))) return;
-    }
-    const setId = studyState.setId;
-    studyState = null;
-    document.removeEventListener('keydown', handleStudyKeys);
-    viewSet(setId);
-}
-
-function getLangCodeForSet(setId) {
-    const data = loadData();
-    const set = data.sets.find(s => s.id === setId);
-    if (!set) return 'en-US';
-    return getLangCode(set.sourceLang);
-}
-
-function getTargetLangCode(setId) {
-    const data = loadData();
-    const set = data.sets.find(s => s.id === setId);
-    if (!set) return 'en-US';
-    return getLangCode(set.targetLang);
-}
 
 // ============================================================
 //  FAVORITE TOGGLE
@@ -1267,13 +810,13 @@ function openCreateSetModal() {
                     <div class="form-group">
                         <label>${t('sourceLang')}</label>
                         <select id="modalSourceLang">
-                            ${renderLanguageOptions('english')}
+                            ${renderLanguageOptions('en')}
                         </select>
                     </div>
                     <div class="form-group">
                         <label>${t('targetLang')}</label>
                         <select id="modalTargetLang">
-                            ${renderLanguageOptions('vietnamese')}
+                            ${renderLanguageOptions('vi')}
                         </select>
                     </div>
                 </div>
@@ -1494,17 +1037,30 @@ function handleInlineAdd(setId) {
 function goDashboard() {
     currentView = 'dashboard';
     currentSetId = null;
-    studyState = null;
-    document.removeEventListener('keydown', handleStudyKeys);
+    if (studyManager.studyInstance) {
+        studyManager.studyInstance = null;
+    }
     render();
 }
 
 function viewSet(id) {
     currentView = 'detail';
     currentSetId = id;
-    studyState = null;
-    document.removeEventListener('keydown', handleStudyKeys);
+    if (studyManager.studyInstance) {
+        studyManager.studyInstance = null;
+    }
     render();
+}
+
+function setActiveAppHeader(active){
+    const header = document.querySelector('.app-header');
+    if(header){
+        if(active){
+            header.style.display = 'none';
+        } else {
+            header.style.display = 'flex';
+        }
+    }
 }
 
 // ============================================================
@@ -1522,7 +1078,6 @@ function escapeHtml(str) {
 // ============================================================
 window.goDashboard = goDashboard;
 window.viewSet = viewSet;
-window.exitStudy = exitStudy;
 window.openCreateSetModal = openCreateSetModal;
 window.openEditSetModal = openEditSetModal;
 window.openAddCardModal = openAddCardModal;
@@ -1537,35 +1092,26 @@ window.handleImportCsv = handleImportCsv;
 window.handleInlineAdd = handleInlineAdd;
 window.deleteSet = deleteSet;
 window.deleteCard = deleteCard;
-window.startStudy = startStudy;
-window.handleStartStudy = handleStartStudy;
-window.flipCard = flipCard;
-window.toggleExample = toggleExample;
-window.nextCard = nextCard;
-window.prevCard = prevCard;
-window.markCard = markCard;
-window.unmarkCard = unmarkCard;
-window.finishBatch = finishBatch;
-window.nextBatch = nextBatch;
-window.retakeBatch = retakeBatch;
-window.finishStudy = finishStudy;
-window.restartStudy = restartStudy;
 window.speakText = speakText;
-window.getLangCodeForSet = getLangCodeForSet;
-window.getTargetLangCode = getTargetLangCode;
 window.closeModal = closeModal;
 window.showToast = showToast;
 window.toggleLanguage = toggleLanguage;
+window.handleLanguageChange = handleLanguageChange;
 window.t = t;
 window.toggleFavorite = toggleFavorite;
 window.moveCard = moveCard;
 window.exportCSV = exportCSV;
 window.exportAllData = exportAllData;
+window.studyManager = studyManager;
+window.setActiveAppHeader = setActiveAppHeader;
 
 // ============================================================
 //  INIT
 // ============================================================
 await Localization.load("./localization.csv");
+
+// Render language dropdown in header
+renderHeaderLanguageDropdown();
 
 render();
 
@@ -1576,6 +1122,6 @@ document.addEventListener('keydown', (e) => {
             closeModal();
         }
     }
+    // Pass key events to study manager
+    studyManager.handleKeyPress(e);
 });
-
-document.getElementById('langToggle').textContent = '🇻🇳 Tiếng Việt';

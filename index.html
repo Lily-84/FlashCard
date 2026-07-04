@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -9,12 +10,16 @@
 <body>
     <div class="app-container" id="app">
         <!-- ===== HEADER ===== -->
-        <header class="app-header">
+        <header class="app-header"> 
             <div class="brand">
                 <h1>📚 FlashCard</h1>
             </div>
             <div class="header-actions">
-                <button class="btn btn-toggle" id="langToggle" onclick="toggleLanguage()">🇻🇳 Tiếng Việt</button>
+                <div class="language-selector">
+                    <select id="langSelect" onchange="handleLanguageChange(this.value)">
+                        <!-- Rendered by JavaScript -->
+                    </select>
+                </div>
                 <button class="btn btn-secondary" id="btnExportAllModal" onclick="exportAllData()">📤 Xuất toàn bộ</button>
                 <button class="btn btn-secondary" id="btnImportAllModal" onclick="openImportAllModal()">📥 Nhập toàn bộ</button>
                 <button class="btn btn-primary" id="btnCreateSet" onclick="openCreateSetModal()">+ Tạo bộ thẻ</button>

@@ -92,3 +92,17 @@ importSuccess,Imported {count} sets successfully!,Đã nhập {count} bộ thẻ
 importFail,Invalid data format. Please check your JSON file.,Dữ liệu không hợp lệ. Vui lòng kiểm tra file JSON.
 chooseFile,Choose File,Chọn file
 inputDataDirectly,Or enter data directly,Hoặc nhập dữ liệu trực tiếp
+studyMode,Study Mode,Chế độ học
+flashcardMode,Flashcard,Flashcard
+quizMode,Quiz,Trắc nghiệm
+studyOrder,Order,Thứ tự
+quizComplete,Quiz Complete!,Hoàn thành trắc nghiệm!
+correct,Correct,Đúng
+incorrect,Incorrect,Sai
+retry,Retry,Thử lại
+finish,Finish,Xong
+autoBatchSummaryOnComplete,Show batch summary when complete learning, Tự động hiện tổng kết cụm sau khi học cụm xong
+boardMode,Draw Board,Bảng vẽ
+showAnswer,Show Answer,Hiển thị đáp án
+hideAnswer,Hide Answer,Ẩn đáp án
+typingMode,Typing,Đánh chữ
