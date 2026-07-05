@@ -9,6 +9,7 @@ export {
     handleLanguageChange
 };
 
+let ttsVoices = [];
 let currentLanguage = 'en';
 
 // Language display names for the dropdown
@@ -149,12 +150,35 @@ function speakText(text, langCode) {
         showToast('TTS not supported.', 'error');
         return;
     }
+
     if (!text || text.trim() === '') return;
+
+    // Dừng phát cũ (Android rất nên có dòng này)
+    window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
+
     utterance.lang = langCode;
     utterance.rate = 0.9;
     utterance.pitch = 1;
+
+    // Tìm voice phù hợp
+    const voices = window.speechSynthesis.getVoices();
+
+    let voice =
+        voices.find(v => v.lang === langCode) ||
+        voices.find(v => v.lang.toLowerCase() === langCode.toLowerCase()) ||
+        voices.find(v => v.lang.startsWith(langCode.split('-')[0]));
+
+    if (voice) {
+        utterance.voice = voice;
+    }
+
     window.speechSynthesis.speak(utterance);
+}
+
+function loadVoices() {
+    ttsVoices = speechSynthesis.getVoices();
 }
 
 // ============================================================
@@ -1125,6 +1149,9 @@ document.addEventListener('keydown', (e) => {
     // Pass key events to study manager
     studyManager.handleKeyPress(e);
 });
+
+loadVoices();
+speechSynthesis.onvoiceschanged = loadVoices;
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
