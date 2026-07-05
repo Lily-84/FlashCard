@@ -146,6 +146,8 @@ function renderHeaderLanguageDropdown() {
 //  TTS
 // ============================================================
 function speakText(text, langCode) {
+    //console.log('speakText called with:', langCode, text);
+
     if (!window.speechSynthesis) {
         showToast('TTS not supported.', 'error');
         return;

@@ -1,5 +1,6 @@
 // study-base.js
 import Localization from "./localization.js";
+import { getLangCode as getLangCodeFromScript, loadData } from './script.js';
 
 // Import type definitions for JSDoc
 /**
@@ -147,22 +148,13 @@ export default class StudyBase {
         return { learned, notLearned, remaining };
     }
 
-    getLangCode(setId, type = 'source') {
-        const data = this.loadData();
+    getLangCode(setId, type) {
+        const data = loadData();
         const set = data.sets.find(s => s.id === setId);
         if (!set) return 'en-US';
-        const langMap = {
-            'english': 'en-US',
-            'vietnamese': 'vi-VN',
-            'japanese': 'ja-JP',
-            'chinese': 'zh-CN',
-            'korean': 'ko-KR',
-            'spanish': 'es-ES',
-            'french': 'fr-FR',
-            'german': 'de-DE'
-        };
-        const lang = type === 'source' ? set.sourceLang : set.targetLang;
-        return langMap[lang] || 'en-US';
+        
+        const langValue = type === 'source' ? set.sourceLang : set.targetLang;
+        return getLangCodeFromScript(langValue);
     }
 
     loadData() {
