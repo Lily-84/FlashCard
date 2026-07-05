@@ -1509,4 +1509,117 @@ textarea {
         width: 100%;
         min-width: unset;
     }
+}/* ===== STUDY ACTIONS RESPONSIVE ===== */
+.study-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin: 16px 0 8px;
+}
+
+.study-actions .btn {
+    padding: 8px 20px;
+    font-size: 14px;
+    min-width: 100px;
+    justify-content: center;
+    flex: 1 1 auto;
+}
+
+.study-actions-bottom {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.study-nav {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.study-nav .btn {
+    padding: 8px 22px;
+    font-size: 14px;
+    min-width: 80px;
+    justify-content: center;
+    flex: 1 1 auto;
+}
+
+.study-counter {
+    text-align: center;
+    font-size: 14px;
+    color: #8888a8;
+    margin-bottom: 8px;
+}
+
+/* Responsive study controls */
+@media (max-width: 480px) {
+    .study-actions {
+        gap: 8px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .study-actions .btn {
+        min-width: unset;
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    .study-nav {
+        gap: 8px;
+    }
+    
+    .study-nav .btn {
+        min-width: unset;
+        padding: 8px 16px;
+        font-size: 13px;
+        flex: 1;
+    }
+    
+    .study-counter {
+        font-size: 13px;
+    }
+    
+    /* Progress dots */
+    .flashcard-progress {
+        gap: 6px;
+        margin: 8px 0 16px;
+    }
+    
+    .flashcard-progress .dot {
+        width: 8px;
+        height: 8px;
+    }
+}/* ===== STUDY CONTAINER ===== */
+.study-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 4px;
+}
+
+@media (max-width: 480px) {
+    .study-container {
+        padding: 0 2px;
+    }
+    
+    /* Header trong study */
+    .study-container > div:first-child {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+    
+    .study-container > div:first-child .btn-back {
+        align-self: flex-start;
+    }
+    
+    .study-container > div:first-child span {
+        text-align: center;
+        font-size: 13px !important;
+    }
 }

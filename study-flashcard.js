@@ -53,13 +53,14 @@ export default class FlashcardStudy extends StudyBase {
 
         const exampleHtml = super.buildExampleHtml(card);
 
+        // Thay đổi phần frontContent và backContent
+
         const frontContent = `
-            <!-- <div class="card-label">${frontLabel}</div> -->
-            <div style="display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap;">
-                <div class="main-text">${this.escapeHtml(frontMain)}</div>
+            <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;width:100%;">
+                <div class="main-text" style="font-size:clamp(18px, 5vw, 28px);">${this.escapeHtml(frontMain)}</div>
                 <button class="btn-speak" onclick="event.stopPropagation(); window.speakText('${this.escapeHtml(frontMain)}', '${frontSpeakCode}')" title="${t('speak')}">🔊</button>
             </div>
-            <div style="margin-top:8px; display:flex; gap:8px; justify-content:center;">
+            <div style="margin-top:8px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); window.studyManager.studyInstance.toggleExample(); window.studyManager.renderStudy();">${this.showExample ? t('hideExample') : t('showExample')}</button>
             </div>
             ${exampleHtml}
@@ -67,12 +68,11 @@ export default class FlashcardStudy extends StudyBase {
         `;
 
         const backContent = `
-            <!-- <div class="card-label">${backLabel}</div> -->
-            <div style="display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap;">
-                <div class="main-text" style="font-size:24px;">${this.escapeHtml(backMain)}</div>
+            <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;width:100%;">
+                <div class="main-text" style="font-size:clamp(18px, 5vw, 28px);">${this.escapeHtml(backMain)}</div>
                 <button class="btn-speak" onclick="event.stopPropagation(); window.speakText('${this.escapeHtml(backMain)}', '${backSpeakCode}')" title="${t('speak')}">🔊</button>
             </div>
-            <div style="margin-top:8px; display:flex; gap:8px; justify-content:center;">
+            <div style="margin-top:8px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); window.studyManager.studyInstance.toggleExample(); window.studyManager.renderStudy();">${this.showExample ? t('hideExample') : t('showExample')}</button>
             </div>
             ${exampleHtml}
