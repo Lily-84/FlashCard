@@ -87,7 +87,9 @@ export default class StudyBase {
     markCard(value) {
         const idx = this.currentBatch * this.batchSize + this.currentIndex;
         if (idx >= this.learnedStatus.length) return;
-        this.learnedStatus[idx] = value;
+        this.learnedStatus[idx] = value;   
+        this.showExample = false;
+        this.showAnswer = false;
         
         if (this.isBatchComplete()) {
             if (this.currentBatch < this.totalBatches - 1) {
@@ -96,7 +98,6 @@ export default class StudyBase {
         } else {
             if (this.currentIndex < this.batchSize - 1) {
                 this.currentIndex++;
-                this.showExample = false;
             }
         }
     }
@@ -105,20 +106,24 @@ export default class StudyBase {
         const idx = this.currentBatch * this.batchSize + this.currentIndex;
         if (idx >= this.learnedStatus.length) return;
         this.learnedStatus[idx] = undefined;
+        this.showExample = false;
+        this.showAnswer = false;
     }
 
     nextCard() {
+        this.showExample = false;
+        this.showAnswer = false;
         const batchCards = this.getCurrentBatchCards();
         if (this.currentIndex < batchCards.length - 1) {
             this.currentIndex++;
-            this.showExample = false;
         }
     }
 
     prevCard() {
+        this.showExample = false;
+        this.showAnswer = false;
         if (this.currentIndex > 0) {
             this.currentIndex--;
-            this.showExample = false;
         }
     }
 
@@ -131,6 +136,7 @@ export default class StudyBase {
         this.currentBatch = 0;
         this.currentIndex = 0;
         this.showExample = false;
+        this.showAnswer = false;
         this.finished = false;
     }
 

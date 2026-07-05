@@ -305,6 +305,7 @@ export default class QuizStudy extends StudyBase {
         this.currentQuestion++;
         this.showResult = false;
         this.selectedAnswer = -1;
+        this.showExample = false;
         window.studyManager.renderStudy();
     }
 

@@ -8,10 +8,14 @@ export default class DrawBoardStudy extends StudyBase {
     constructor(setId, cards, batchSize, meaningFirst = false) {
         super(setId, cards, batchSize, meaningFirst, false);
         this.showAnswer = false;
-        this.showExampleOverlay = false;
+        this.showExample = false;
         this.canvasId = null;
         this.canvasInitialized = false;
         this.resizeHandler = null;
+
+        this.canvasData = new Map(); // key: cardIndex, value: imageData
+        this.currentCanvasData = null;
+        this.currentCardIndex = -1;
     }
 
     render() {
@@ -84,6 +88,13 @@ export default class DrawBoardStudy extends StudyBase {
         // Tạo canvas ID duy nhất cho mỗi card
         this.canvasId = `drawCanvas_${Date.now()}_${this.currentBatch}_${this.currentIndex}`;
         // Reset flag để khởi tạo lại canvas
+        const cardIndex = this.currentBatch * this.batchSize + this.currentIndex;
+        this.canvasId = `drawCanvas_${cardIndex}`;
+
+        // Lưu card index hiện tại
+        this.currentCardIndex = cardIndex;
+
+        // Reset flag để khởi tạo lại canvas
         this.canvasInitialized = false;
 
         return `
@@ -112,7 +123,7 @@ export default class DrawBoardStudy extends StudyBase {
                     <canvas id="${this.canvasId}" style="width:100%;height:100%;display:block;cursor:crosshair;touch-action:none;"></canvas>
                     
                     <!-- Example Overlay -->
-                    ${this.showExampleOverlay ? exampleOverlayHtml : ''}
+                    ${this.showExample ? exampleOverlayHtml : ''}
                 </div>
 
                 <!-- Canvas toolbar -->
@@ -137,7 +148,7 @@ export default class DrawBoardStudy extends StudyBase {
                 </div>
                 <div class="study-actions">
                     <button class="btn btn-secondary" onclick="window.studyManager.studyInstance.toggleAnswer(); window.studyManager.renderStudy();">${this.showAnswer ? t('hideAnswer') : t('showAnswer')}</button>
-                    <button class="btn btn-secondary" onclick="window.studyManager.studyInstance.toggleExampleOverlay(); window.studyManager.renderStudy();">${this.showExampleOverlay ? t('hideExample') : t('showExample')}</button>
+                    <button class="btn btn-secondary" onclick="window.studyManager.studyInstance.toggleExampleOverlay(); window.studyManager.renderStudy();">${this.showExample ? t('hideExample') : t('showExample')}</button>
                     <button class="btn btn-secondary" onclick="window.studyManager.studyInstance.markAllUnmarked(); window.studyManager.renderStudy();">${t('finishBatch')}</button>
                 </div>
 
@@ -194,7 +205,8 @@ export default class DrawBoardStudy extends StudyBase {
     }
 
     toggleExampleOverlay() {
-        this.showExampleOverlay = !this.showExampleOverlay;
+        this.saveCurrentCanvas();
+        this.showExample = !this.showExample;
     }
 
     attachEvents() {
@@ -204,10 +216,23 @@ export default class DrawBoardStudy extends StudyBase {
             this.resizeHandler = null;
         }
 
-        // Khởi tạo canvas sau khi DOM đã được render
+        // Khởi tạo canvas và khôi phục dữ liệu
         setTimeout(() => {
             if (this.canvasId && !this.canvasInitialized) {
                 this.initCanvas();
+            } else if (this.canvasId) {
+                // THÊM: Nếu canvas đã được khởi tạo, chỉ cần khôi phục dữ liệu
+                const canvas = document.getElementById(this.canvasId);
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    const cardIndex = this.currentBatch * this.batchSize + this.currentIndex;
+                    const savedData = this.canvasData.get(cardIndex);
+                    if (savedData) {
+                        ctx.putImageData(savedData, 0, 0);
+                        this.currentCanvasData = savedData;
+                        this.currentCardIndex = cardIndex;
+                    }
+                }
             }
         }, 50);
 
@@ -223,7 +248,6 @@ export default class DrawBoardStudy extends StudyBase {
             return;
         }
 
-        // Nếu đã khởi tạo rồi thì không khởi tạo lại
         if (this.canvasInitialized) {
             console.log('Canvas already initialized');
             return;
@@ -231,7 +255,7 @@ export default class DrawBoardStudy extends StudyBase {
 
         console.log('Initializing canvas:', this.canvasId);
         this.canvasInitialized = true;
-        
+
         const ctx = canvas.getContext('2d');
         let W, H, drawing = false, lastX, lastY;
         let size = 5, color = '#ffffff', eraser = false;
@@ -244,9 +268,14 @@ export default class DrawBoardStudy extends StudyBase {
             W = canvas.width = rect.width * dpr;
             H = canvas.height = rect.height * dpr;
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            
-            if (history.length > 0 && idx >= 0) {
-                ctx.putImageData(history[idx], 0, 0);
+
+            // THAY ĐỔI: Thử khôi phục dữ liệu hoặc vẽ nền đen
+            const cardIndex = this.currentBatch * this.batchSize + this.currentIndex;
+            const savedData = this.canvasData.get(cardIndex);
+            if (savedData) {
+                ctx.putImageData(savedData, 0, 0);
+                this.currentCanvasData = savedData;
+                this.currentCardIndex = cardIndex;
             } else {
                 ctx.fillStyle = '#000';
                 ctx.fillRect(0, 0, W, H);
@@ -255,9 +284,16 @@ export default class DrawBoardStudy extends StudyBase {
 
         const save = () => {
             history = history.slice(0, idx + 1);
-            history.push(ctx.getImageData(0, 0, W, H));
+            const imageData = ctx.getImageData(0, 0, W, H);
+            history.push(imageData);
             if (history.length > MAX) history.shift();
             idx = history.length - 1;
+
+            // THÊM: Lưu vào Map khi vẽ
+            const cardIndex = this.currentBatch * this.batchSize + this.currentIndex;
+            this.canvasData.set(cardIndex, imageData);
+            this.currentCanvasData = imageData;
+            this.currentCardIndex = cardIndex;
         };
 
         const drawDot = (x, y) => {
@@ -336,14 +372,14 @@ export default class DrawBoardStudy extends StudyBase {
         const colorPicker = document.getElementById(`drawColor_${canvasId}`);
 
         if (sizeSlider) {
-            sizeSlider.oninput = function() {
+            sizeSlider.oninput = function () {
                 size = parseInt(this.value);
                 if (sizeDisplay) sizeDisplay.textContent = size;
             };
         }
 
         if (colorPicker) {
-            colorPicker.oninput = function() {
+            colorPicker.oninput = function () {
                 color = this.value;
                 eraser = false;
                 // Update tool buttons
@@ -356,9 +392,9 @@ export default class DrawBoardStudy extends StudyBase {
 
         // Tool buttons
         document.querySelectorAll('.btn-tool').forEach(btn => {
-            btn.onclick = function() {
+            btn.onclick = function () {
                 const tool = this.dataset.tool;
-                switch(tool) {
+                switch (tool) {
                     case 'pen':
                         eraser = false;
                         this.style.background = 'rgba(255,255,255,0.15)';
@@ -372,11 +408,9 @@ export default class DrawBoardStudy extends StudyBase {
                         if (penBtn) penBtn.style.background = 'rgba(255,255,255,0.06)';
                         break;
                     case 'clear':
-                        if (confirm('Xóa tất cả?')) {
-                            ctx.fillStyle = '#000';
-                            ctx.fillRect(0, 0, W, H);
-                            save();
-                        }
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(0, 0, W, H);
+                        save();
                         break;
                     case 'undo':
                         if (idx > 0) {
@@ -416,11 +450,34 @@ export default class DrawBoardStudy extends StudyBase {
         // Khởi tạo
         resize();
         save();
-        
+
         console.log('Canvas initialized successfully');
     }
 
+    // Phương thức khôi phục canvas data
+    restoreCanvasData() {
+        const cardIndex = this.currentBatch * this.batchSize + this.currentIndex;
+        const canvas = document.getElementById(this.canvasId);
+        if (!canvas) return false;
+
+        const ctx = canvas.getContext('2d');
+        const savedData = this.canvasData.get(cardIndex);
+
+        if (savedData) {
+            ctx.putImageData(savedData, 0, 0);
+            this.currentCanvasData = savedData;
+            this.currentCardIndex = cardIndex;
+            return true;
+        } else {
+            // Không có dữ liệu, vẽ nền đen
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            return false;
+        }
+    }
+
     toggleAnswer() {
+        this.saveCurrentCanvas();
         this.showAnswer = !this.showAnswer;
     }
 
@@ -444,29 +501,66 @@ export default class DrawBoardStudy extends StudyBase {
         }
     }
 
+    saveCurrentCanvas() {
+        if (!this.canvasId) return;
+        const canvas = document.getElementById(this.canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const cardIndex = this.currentBatch * this.batchSize + this.currentIndex;
+        this.canvasData.set(cardIndex, imageData);
+
+        this.currentCanvasData = imageData;
+        this.currentCardIndex = cardIndex;
+    }
+
+    clearCurrentCanvas() {
+        const canvas = document.getElementById(this.canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        this.saveCurrentCanvas();
+    }
+
     markCard(value) {
+        this.clearCurrentCanvas();
         const idx = this.currentBatch * this.batchSize + this.currentIndex;
         if (idx >= this.learnedStatus.length) return;
         this.learnedStatus[idx] = value;
         this.showAnswer = false;
-        this.showExampleOverlay = false;
-        
+        this.showExample = false;
+
         if (this.isBatchComplete()) {
             // Batch hoàn thành, giữ nguyên currentBatch để hiển thị summary
         } else {
             if (this.currentIndex < this.batchSize - 1) {
                 this.currentIndex++;
-                this.showExample = false;
             }
         }
     }
+
+    unmarkCard() {
+        this.clearCurrentCanvas();
+        super.unmarkCard();
+    }
+
+    nextCard() {
+        this.clearCurrentCanvas();
+        super.nextCard();
+    }
+
+    prevCard() {
+        this.clearCurrentCanvas();
+        super.prevCard();
+    }
+
 
     nextBatch() {
         if (this.currentBatch < this.totalBatches - 1) {
             this.currentBatch++;
             this.currentIndex = 0;
             this.showAnswer = false;
-            this.showExampleOverlay = false;
             this.showExample = false;
         } else {
             this.finish();
@@ -481,9 +575,10 @@ export default class DrawBoardStudy extends StudyBase {
         }
         this.currentIndex = 0;
         this.showAnswer = false;
-        this.showExampleOverlay = false;
         this.showExample = false;
     }
+
+    show
 
     renderBatchSummary() {
         const stats = this.getStats();
