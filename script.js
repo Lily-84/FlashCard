@@ -305,14 +305,15 @@ function handleImportFile(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
-            const data = JSON.parse(e.target.result);
-            if (!data.sets || !Array.isArray(data.sets)) {
+            const importData = JSON.parse(e.target.result);
+            if (!importData.sets || !Array.isArray(importData.sets)) {
                 showToast(t('importFail'), 'error');
                 return;
             }
+            
             // Validate data structure
             let valid = true;
-            for (const set of data.sets) {
+            for (const set of importData.sets) {
                 if (!set.id || !set.name || !set.sourceLang || !set.targetLang) {
                     valid = false;
                     break;
@@ -331,16 +332,116 @@ function handleImportFile(file) {
                 showToast(t('importFail'), 'error');
                 return;
             }
-            // Save data
-            saveData(data);
+            
+            // Lấy dữ liệu hiện tại
+            const currentData = loadData();
+            
+            // Merge dữ liệu mới vào dữ liệu hiện tại
+            const mergedData = mergeImportData(currentData, importData);
+            
+            // Lưu dữ liệu đã merge
+            saveData(mergedData);
             closeModal();
-            showToast(t('importSuccess').replace('{count}', data.sets.length), 'success');
+            showToast(t('importSuccess').replace('{count}', importData.sets.length), 'success');
             render();
         } catch (err) {
             showToast(t('importFail'), 'error');
         }
     };
     reader.readAsText(file);
+}
+
+// Hàm merge dữ liệu import với dữ liệu hiện tại
+function mergeImportData(currentData, importData) {
+    // Tạo bản sao của dữ liệu hiện tại
+    const merged = {
+        sets: [...(currentData.sets || [])]
+    };
+    
+    // Lưu trữ map để check set tồn tại (theo id)
+    const existingSetMap = new Map();
+    merged.sets.forEach(set => {
+        existingSetMap.set(set.id, set);
+    });
+    
+    // Xử lý từng set trong dữ liệu import
+    for (const importSet of importData.sets) {
+        // Tạo ID mới cho set nếu trùng ID
+        let setId = importSet.id;
+        let setExists = existingSetMap.has(setId);
+        
+        // Nếu set đã tồn tại, tạo ID mới với timestamp để tránh trùng
+        if (setExists) {
+            // Thêm timestamp vào cuối ID để tạo ID mới
+            const timestamp = Date.now();
+            const randomSuffix = Math.floor(Math.random() * 1000);
+            setId = `${importSet.id}_${timestamp}_${randomSuffix}`;
+        }
+        
+        // Tạo set mới với ID (có thể đã được thay đổi)
+        const newSet = {
+            ...importSet,
+            id: setId,
+            cards: []
+        };
+        
+        // Xử lý cards trong set
+        if (importSet.cards && Array.isArray(importSet.cards)) {
+            // Nếu set không tồn tại trước đó, thêm toàn bộ cards
+            if (!setExists) {
+                newSet.cards = importSet.cards.map(card => ({
+                    ...card,
+                    id: card.id // Giữ nguyên ID
+                }));
+            } 
+            // Nếu set đã tồn tại, kiểm tra và merge cards
+            else {
+                const existingSet = existingSetMap.get(importSet.id);
+                if (existingSet && existingSet.cards) {
+                    // Tạo map card tồn tại theo id
+                    const existingCardMap = new Map();
+                    existingSet.cards.forEach(card => {
+                        existingCardMap.set(card.id, card);
+                    });
+                    
+                    // Thêm các card mới hoặc update card cũ
+                    for (const importCard of importSet.cards) {
+                        if (!existingCardMap.has(importCard.id)) {
+                            // Card mới - thêm vào
+                            newSet.cards.push({
+                                ...importCard,
+                                id: importCard.id
+                            });
+                        } else {
+                            // Card đã tồn tại - có thể bỏ qua hoặc cập nhật
+                            // Ở đây chọn cập nhật nội dung card cũ
+                            const existingCard = existingCardMap.get(importCard.id);
+                            newSet.cards.push({
+                                ...existingCard,
+                                word: importCard.word,
+                                meaning: importCard.meaning,
+                                // Giữ nguyên các thuộc tính khác nếu có
+                                ...importCard
+                            });
+                        }
+                    }
+                    
+                    // Nếu muốn giữ lại card cũ không có trong import, thêm vào
+                    for (const [cardId, existingCard] of existingCardMap) {
+                        if (!importSet.cards.some(c => c.id === cardId)) {
+                            newSet.cards.push({...existingCard});
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Thêm set mới vào merged
+        merged.sets.push(newSet);
+        existingSetMap.set(setId, newSet);
+    }
+    
+    return merged;
 }
 
 // ============================================================
@@ -402,10 +503,10 @@ function renderDashboard() {
                         </div>
                         <div class="card-count">${count} ${t('remainingCards')}</div>
                         <div class="actions">
-                            <button class="btn btn-primary btn-sm" onclick="viewSet('${set.id}')">${t('view')}</button>
-                            <button class="btn btn-success btn-sm" onclick="window.studyManager.startStudy('${set.id}')">${t('study')}</button>
-                            <button class="btn btn-secondary btn-sm" onclick="openEditSetModal('${set.id}')">${t('edit')}</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteSet('${set.id}')">${t('delete')}</button>
+                            <button class="btn btn-primary btn-sm" onclick="viewSet('${set.id}'); event.stopPropagation();">${t('view')}</button>
+                            <button class="btn btn-success btn-sm" onclick="window.studyManager.startStudy('${set.id}'); event.stopPropagation();">${t('study')}</button>
+                            <button class="btn btn-secondary btn-sm" onclick="openEditSetModal('${set.id}'); event.stopPropagation();">${t('edit')}</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteSet('${set.id}'); event.stopPropagation();">${t('delete')}</button>
                         </div>
                     </div>
                 `;
