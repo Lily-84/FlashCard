@@ -447,8 +447,8 @@ textarea {
 /* ===== WORD GRID (thay thế table) ===== */
 .word-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 16px;
     margin-top: 16px;
 }
 
@@ -456,12 +456,13 @@ textarea {
     background: #16162a;
     border: 1px solid #2d2d44;
     border-radius: 12px;
-    padding: 14px 18px;
-    display: grid;
-    grid-template-columns: 40px 1.2fr 1.2fr 1.5fr 1.5fr 140px;
-    gap: 12px;
-    align-items: center;
-    transition: all 0.2s;
+    padding: 16px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    transition: .2s;
 }
 
 .word-item:hover {
@@ -476,20 +477,19 @@ textarea {
 .word-item .col-word,
 .word-item .col-meaning,
 .word-item .col-example,
-.word-item .col-example-trans {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 0;
+.word-item .col-example-trans{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
 }
 
-.word-item .col-word .text-content,
-.word-item .col-meaning .text-content,
-.word-item .col-example .text-content,
-.word-item .col-example-trans .text-content {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.word-item .text-content{
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    flex:1;
 }
 
 .word-item .col-example .text-content,
@@ -511,6 +511,41 @@ textarea {
     font-style: italic;
     font-size: 12px;
 }
+
+@media (max-width: 900px) {
+    .word-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 16px;
+    }
+
+    .word-item .col-fav {
+        align-self:flex-start;
+    }
+
+    .word-item .col-word {
+        grid-row: 2;
+    }
+
+    .word-item .col-meaning {
+        grid-row: 3;
+    }
+
+    .word-item .col-example {
+        grid-row: 4;
+    }
+
+    .word-item .col-example-trans {
+        grid-row: 5;
+    }
+
+    .word-item .col-actions {
+        grid-row: 6;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+}
+
 
 /* ===== ADD CARD FORM ===== */
 .add-card-form {
@@ -602,7 +637,8 @@ textarea {
 .flashcard {
     position: relative;
     width: 100%;
-    min-height: 260px;
+    height: clamp(350px, 55vh, 600px);
+
     transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
     transform-style: preserve-3d;
     border-radius: 18px;
@@ -616,6 +652,7 @@ textarea {
 
 .flashcard-face {
     position: absolute;
+    inset: 0;
     width: 100%;
     min-height: 260px;
     backface-visibility: hidden;
@@ -1077,41 +1114,6 @@ textarea {
 }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 900px) {
-    .word-item {
-        grid-template-columns: 1fr;
-        gap: 8px;
-        padding: 16px;
-    }
-
-    .word-item .col-fav {
-        text-align: left;
-        grid-row: 1;
-    }
-
-    .word-item .col-word {
-        grid-row: 2;
-    }
-
-    .word-item .col-meaning {
-        grid-row: 3;
-    }
-
-    .word-item .col-example {
-        grid-row: 4;
-    }
-
-    .word-item .col-example-trans {
-        grid-row: 5;
-    }
-
-    .word-item .col-actions {
-        grid-row: 6;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-    }
-}
-
 @media (max-width: 700px) {
     .app-header {
         padding: 14px 18px;
@@ -1597,7 +1599,7 @@ textarea {
     }
 }/* ===== STUDY CONTAINER ===== */
 .study-container {
-    max-width: 720px;
+    width:100%;
     margin: 0 auto;
     padding: 0 4px;
 }

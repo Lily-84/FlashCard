@@ -225,7 +225,8 @@ class StudyManager {
         }
 
         this.currentView = 'study';
-        this.renderStudy();
+        this.renderStudy();     
+        window.setActiveAppHeader(false);
     }
 
     renderStudy() {

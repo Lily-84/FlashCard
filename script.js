@@ -463,11 +463,11 @@ function render() {
     if (currentView === 'dashboard') {
         container.innerHTML = renderDashboard();
         attachDashboardEvents();
-        setActiveAppHeader(false);
+        setActiveAppHeader(true);
     } else if (currentView === 'detail') {
         container.innerHTML = renderSetDetail(currentSetId);
         attachDetailEvents();
-        setActiveAppHeader(true);
+        setActiveAppHeader(false);
     }
     document.getElementById('btnCreateSet').innerHTML = t('addNewCardSet');
     document.getElementById('btnExportAllModal').innerHTML = t('exportAll');
@@ -1183,9 +1183,9 @@ function setActiveAppHeader(active){
     const header = document.querySelector('.app-header');
     if(header){
         if(active){
-            header.style.display = 'none';
-        } else {
             header.style.display = 'flex';
+        } else {
+            header.style.display = 'none';
         }
     }
 }
