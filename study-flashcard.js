@@ -158,4 +158,8 @@ export default class FlashcardStudy extends StudyBase {
             window.studyManager.renderStudy();
         }
     }
+
+    onChangeCard(){
+        this.flipped = false;
+    }
 }
