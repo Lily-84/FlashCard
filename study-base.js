@@ -51,6 +51,8 @@ export default class StudyBase {
         // Keyboard events handled by StudyManager
     }
 
+    onChangeCard() {}
+
     /**
      * Get cards in the current batch
      * @returns {Array<Card>} Array of cards in current batch
@@ -95,10 +97,12 @@ export default class StudyBase {
         if (this.isBatchComplete()) {
             if (this.currentBatch < this.totalBatches - 1) {
                 this.finished = true;
+                this.onChangeCard();
             }
         } else {
             if (this.currentIndex < this.batchSize - 1) {
                 this.currentIndex++;
+                this.onChangeCard();
             }
         }
     }
@@ -117,6 +121,7 @@ export default class StudyBase {
         const batchCards = this.getCurrentBatchCards();
         if (this.currentIndex < batchCards.length - 1) {
             this.currentIndex++;
+            this.onChangeCard();
         }
     }
 
@@ -125,6 +130,7 @@ export default class StudyBase {
         this.showAnswer = false;
         if (this.currentIndex > 0) {
             this.currentIndex--;
+            this.onChangeCard();
         }
     }
 
