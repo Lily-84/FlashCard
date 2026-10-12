@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -165,10 +165,9 @@ textarea.form-input{min-height:74px;resize:vertical;line-height:1.5;}
 .progress-line{height:3px;background:var(--surface-2);margin:0 16px;border-radius:99px;overflow:hidden;flex-shrink:0;}
 #studyBar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:99px;transition:width .3s ease;}
 .study-body{
-  flex:1;display:flex;align-items:flex-start;justify-content:center;
+  flex:1;display:flex;align-items:center;justify-content:center;
   padding:16px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;
 }
-.study-body.center{align-items:center;}
 .study-actions{
   display:flex;flex-direction:column;gap:10px;
   padding:10px 16px calc(16px + env(safe-area-inset-bottom));flex-shrink:0;
@@ -207,13 +206,14 @@ textarea.form-input{min-height:74px;resize:vertical;line-height:1.5;}
 @keyframes pulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.12);opacity:1}}
 
 /* ---------- Done / Summary ---------- */
-.done-screen{text-align:center;padding:12px 0 0;width:100%;}
+.done-screen{text-align:left;padding:8px 0 0;width:100%;}
+.done-top{text-align:center;}
 .done-emoji{font-size:56px;margin-bottom:12px;line-height:1;}
-.done-screen h2{margin:0 0 6px;font-size:22px;font-weight:700;}
-.done-screen p{margin:0;color:var(--muted);font-size:14.5px;}
+.done-top h2{margin:0 0 6px;font-size:22px;font-weight:700;}
+.done-top p{margin:0;color:var(--muted);font-size:14.5px;}
 
 .summary-wrap{
-  margin-top:20px;display:flex;flex-direction:column;gap:14px;text-align:left;
+  margin-top:20px;display:flex;flex-direction:column;gap:14px;
 }
 .summary-section{
   background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;
@@ -241,7 +241,7 @@ textarea.form-input{min-height:74px;resize:vertical;line-height:1.5;}
 <!-- ============ SET LIST ============ -->
 <section id="view-sets" class="view active">
   <header class="topbar">
-    <h1>Bộ flashcard</h1>
+    <h1>Flashcard Sets</h1>
     <button class="icon-btn" id="btnNewSet">+</button>
   </header>
   <div class="scroll" id="setsList"></div>
@@ -251,7 +251,7 @@ textarea.form-input{min-height:74px;resize:vertical;line-height:1.5;}
 <section id="view-set" class="view">
   <header class="topbar">
     <button class="icon-btn" id="btnBackSets">←</button>
-    <input class="name-input" id="setNameInput" placeholder="Tên bộ thẻ">
+    <input class="name-input" id="setNameInput" placeholder="Set name">
     <button class="icon-btn" id="btnDeleteSet">🗑</button>
   </header>
 
@@ -262,32 +262,32 @@ textarea.form-input{min-height:74px;resize:vertical;line-height:1.5;}
   </div>
 
   <div class="pad">
-    <button class="btn primary big" id="btnStart">▶ Ôn tập</button>
+    <button class="btn primary big" id="btnStart">▶ Study</button>
   </div>
 
   <div class="tabs">
-    <button data-tab="cards" class="active">Thẻ</button>
-    <button data-tab="add">Thêm từ</button>
+    <button data-tab="cards" class="active">Cards</button>
+    <button data-tab="add">Add words</button>
   </div>
 
   <div class="scroll">
     <div id="tab-cards"></div>
     <div id="tab-add" style="display:none">
       <div class="hintbox">
-        Dán dữ liệu CSV, mỗi dòng 1 thẻ:<br>
-        <code>từ, nghĩa, ví dụ, dịch ví dụ</code><br>
-        Cột 3 và 4 có thể để trống. Hỗ trợ dấu phẩy, tab hoặc dấu chấm phẩy.
+        Paste CSV data, one card per line:<br>
+        <code>term, meaning, example, example translation</code><br>
+        Columns 3 and 4 are optional. Supports comma, tab, or semicolon.
       </div>
       <textarea class="csv" id="csvInput" placeholder='hello,xin chào,Hello there!,Chào bạn!
 book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
       <label class="switch-row" style="margin-top:6px">
-        <span style="color:var(--muted);font-size:13.5px">Dòng đầu tiên là tiêu đề</span>
+        <span style="color:var(--muted);font-size:13.5px">First row is header</span>
         <button class="switch" id="optHeader"></button>
       </label>
-      <button class="btn primary big" id="btnImportCsv">Nhập từ CSV</button>
+      <button class="btn primary big" id="btnImportCsv">Import from CSV</button>
 
-      <div class="section-label">Thêm thủ công</div>
-      <button class="btn ghost big" id="btnAddManual" style="margin:0">+ Thêm một thẻ</button>
+      <div class="section-label">Manual add</div>
+      <button class="btn ghost big" id="btnAddManual" style="margin:0">+ Add a card</button>
     </div>
   </div>
 </section>
@@ -303,7 +303,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
     <button class="icon-btn" id="btnStudyOpts">⚙</button>
   </header>
   <div class="progress-line"><div id="studyBar"></div></div>
-  <div class="study-body center" id="studyBody"></div>
+  <div class="study-body" id="studyBody"></div>
   <div class="study-actions" id="studyActions"></div>
 </section>
 
@@ -312,27 +312,27 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
   <div class="sheet-backdrop" data-close></div>
   <div class="sheet-panel">
     <div class="sheet-handle"></div>
-    <h3>Tùy chọn ôn tập</h3>
+    <h3 id="optionsTitle">Study options</h3>
 
     <div class="field">
-      <label>Ôn mặt nào trước</label>
+      <label>Front side</label>
       <div class="chips" id="optDirection">
-        <button data-v="source">Ngôn ngữ gốc trước</button>
-        <button data-v="target">Nghĩa trước</button>
+        <button data-v="source">Source first</button>
+        <button data-v="target">Meaning first</button>
       </div>
     </div>
 
     <div class="field">
-      <label>Thứ tự thẻ</label>
+      <label>Card order</label>
       <div class="chips" id="optOrder">
-        <button data-v="down">Trên → dưới</button>
-        <button data-v="up">Dưới → trên</button>
-        <button data-v="random">Ngẫu nhiên</button>
+        <button data-v="down">Top → bottom</button>
+        <button data-v="up">Bottom → top</button>
+        <button data-v="random">Random</button>
       </div>
     </div>
 
     <div class="field">
-      <label>Số thẻ mỗi lượt</label>
+      <label>Cards per batch</label>
       <div class="chips" id="optBatch">
         <button data-v="5">5</button>
         <button data-v="6">6</button>
@@ -344,26 +344,28 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
     </div>
 
     <div class="field">
-      <label>Chế độ âm thanh</label>
+      <label>Audio mode</label>
       <div class="switch-row">
-        <span>Ẩn nội dung, chỉ nghe</span>
+        <span>Hide content, listen only</span>
         <button class="switch" id="optAudio"></button>
       </div>
     </div>
 
     <div class="field">
-      <label>Tùy chọn âm thanh</label>
+      <label>Audio options</label>
       <div class="switch-row">
-        <span>Tự động đọc khi đến thẻ</span>
+        <span>Auto-read when card appears</span>
         <button class="switch" id="optAutoRead"></button>
       </div>
       <div class="chips" id="optReadWhat" style="margin-top:8px">
-        <button data-v="word">Đọc từ</button>
-        <button data-v="example">Đọc ví dụ</button>
+        <button data-v="term">Term</button>
+        <button data-v="meaning">Meaning</button>
+        <button data-v="example">Example</button>
+        <button data-v="exampleTrans">Ex. translation</button>
       </div>
     </div>
 
-    <button class="btn primary big" id="btnBegin">Bắt đầu</button>
+    <button class="btn primary big" id="btnBegin">Start</button>
   </div>
 </div>
 
@@ -372,12 +374,12 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
   <div class="sheet-backdrop" data-close></div>
   <div class="sheet-panel">
     <div class="sheet-handle"></div>
-    <h3 id="cardModalTitle">Thêm thẻ</h3>
-    <input class="form-input" id="fTerm" placeholder="Từ / cụm từ (ngôn ngữ gốc)">
-    <input class="form-input" id="fMeaning" placeholder="Nghĩa (ngôn ngữ dịch)">
-    <textarea class="form-input" id="fExample" placeholder="Ví dụ (tùy chọn)"></textarea>
-    <textarea class="form-input" id="fExTrans" placeholder="Dịch ví dụ (tùy chọn)"></textarea>
-    <button class="btn primary big" id="btnSaveCard">Lưu</button>
+    <h3 id="cardModalTitle">Add card</h3>
+    <input class="form-input" id="fTerm" placeholder="Term / phrase (source language)">
+    <input class="form-input" id="fMeaning" placeholder="Meaning (target language)">
+    <textarea class="form-input" id="fExample" placeholder="Example (optional)"></textarea>
+    <textarea class="form-input" id="fExTrans" placeholder="Example translation (optional)"></textarea>
+    <button class="btn primary big" id="btnSaveCard">Save</button>
   </div>
 </div>
 
@@ -386,11 +388,8 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
   <div class="sheet-backdrop" data-close></div>
   <div class="sheet-panel">
     <div class="sheet-handle"></div>
-    <h3>Đọc nội dung</h3>
-    <button class="btn ghost big" data-speak="term">🔊 Đọc từ</button>
-    <button class="btn ghost big" data-speak="meaning">🔊 Đọc nghĩa</button>
-    <button class="btn ghost big" data-speak="example">🔊 Đọc ví dụ</button>
-    <button class="btn ghost big" data-speak="exampleTrans">🔊 Đọc dịch ví dụ</button>
+    <h3>Listen</h3>
+    <div id="speakBody"></div>
   </div>
 </div>
 
@@ -420,7 +419,7 @@ const state = { sets: [], currentSetId: null, session: null };
 let pendingOpts = null;
 let editingCardId = null;
 let csvHeaderSkip = false;
-let speakingCard = null;
+let speakCtx = null; // {card, set}
 
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
 const $ = id => document.getElementById(id);
@@ -430,7 +429,7 @@ const getSet = id => state.sets.find(s => s.id === id);
 const shuffle = a => { for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
 
 function defaultOptions(){
-  return { direction:'source', order:'down', batch:5, audioMode:false, autoRead:true, readWhat:'word' };
+  return { direction:'source', order:'down', batch:5, audioMode:false, autoRead:true, readWhat:'term' };
 }
 
 /* ================= PERSISTENCE ================= */
@@ -442,7 +441,7 @@ function load(){
       if(d && Array.isArray(d.sets)){
         state.sets = d.sets.map(s => ({
           id: s.id || uid(),
-          name: s.name || 'Bộ thẻ',
+          name: s.name || 'New set',
           sourceLang: s.sourceLang || 'en-US',
           targetLang: s.targetLang || 'vi-VN',
           cards: Array.isArray(s.cards) ? s.cards : [],
@@ -470,8 +469,8 @@ function renderSets(){
   if(!state.sets.length){
     list.innerHTML = `<div class="empty">
       <div class="empty-emoji">🗂️</div>
-      <p>Chưa có bộ flashcard nào</p>
-      <button class="btn primary" id="btnEmptyNew">Tạo bộ đầu tiên</button>
+      <p>No flashcard sets yet</p>
+      <button class="btn primary" id="btnEmptyNew">Create your first set</button>
     </div>`;
     $('btnEmptyNew').onclick = createSet;
     return;
@@ -480,7 +479,7 @@ function renderSets(){
     <div class="set-card" data-id="${s.id}">
       <div class="set-info" data-act="open">
         <div class="set-name">${esc(s.name)}</div>
-        <div class="set-meta">${s.cards.length} thẻ · ${langShort(s.sourceLang)} → ${langShort(s.targetLang)}</div>
+        <div class="set-meta">${s.cards.length} cards · ${langShort(s.sourceLang)} → ${langShort(s.targetLang)}</div>
       </div>
       <div class="set-ctrl">
         <button data-act="up" ${i===0?'disabled':''}>▲</button>
@@ -510,7 +509,7 @@ function moveSet(id, dir){
 
 function createSet(){
   const s = {
-    id: uid(), name: 'Bộ thẻ mới', sourceLang: 'en-US', targetLang: 'vi-VN',
+    id: uid(), name: 'New set', sourceLang: 'en-US', targetLang: 'vi-VN',
     cards: [], options: defaultOptions()
   };
   state.sets.unshift(s);
@@ -533,7 +532,7 @@ function renderSetDetail(){
   $('srcLang').value = set.sourceLang;
   $('tgtLang').value = set.targetLang;
   const b = $('btnStart');
-  b.textContent = set.cards.length ? `▶  Ôn tập · ${set.cards.length} thẻ` : '▶  Chưa có thẻ nào';
+  b.textContent = set.cards.length ? `▶  Study · ${set.cards.length} cards` : '▶  No cards yet';
   b.disabled = set.cards.length === 0;
   renderCardList();
 }
@@ -543,7 +542,7 @@ function renderCardList(){
   const box = $('tab-cards');
   if(!set.cards.length){
     box.innerHTML = `<div class="empty" style="padding:50px 20px">
-      <div class="empty-emoji">📝</div><p>Bộ thẻ chưa có nội dung</p></div>`;
+      <div class="empty-emoji">📝</div><p>This set has no cards yet</p></div>`;
     return;
   }
   box.innerHTML = set.cards.map(c => `
@@ -553,7 +552,7 @@ function renderCardList(){
         <div class="wi-mean">${esc(c.meaning)}</div>
         ${c.example ? `<div class="wi-ex">${esc(c.example)}</div>` : ''}
       </div>
-      <button class="wi-speak" data-act="speak" title="Đọc">🔊</button>
+      <button class="wi-speak" data-act="speak" title="Listen">🔊</button>
       <button class="wi-del" data-act="del">✕</button>
     </div>`).join('');
 
@@ -567,7 +566,7 @@ function renderCardList(){
         save(); renderSetDetail();
       } else if(act === 'speak'){
         const card = s.cards.find(x => x.id === id);
-        if(card) openSpeakSheet(card);
+        if(card) openSpeakSheet(card, s);
       } else {
         openCardModal(id);
       }
@@ -576,8 +575,24 @@ function renderCardList(){
 }
 
 /* ================= SPEAK SHEET ================= */
-function openSpeakSheet(card){
-  speakingCard = card;
+function openSpeakSheet(card, set){
+  speakCtx = { card, set };
+  const items = [
+    { key:'term', label:'Term', lang: set.sourceLang, enabled: !!card.term },
+    { key:'meaning', label:'Meaning', lang: set.targetLang, enabled: !!card.meaning },
+    { key:'example', label:'Example', lang: set.sourceLang, enabled: !!card.example },
+    { key:'exampleTrans', label:'Example translation', lang: set.targetLang, enabled: !!card.exampleTrans }
+  ];
+  $('speakBody').innerHTML = items.map(it =>
+    `<button class="btn ghost big" data-speak="${it.key}" ${it.enabled?'':'disabled'}>🔊 ${it.label}</button>`
+  ).join('');
+  $('speakBody').querySelectorAll('[data-speak]').forEach(b => {
+    b.onclick = () => {
+      const item = items.find(x => x.key === b.dataset.speak);
+      if(item) speak(item.lang === set.targetLang ? card[item.key] : card[item.key], item.lang);
+      closeSheets();
+    };
+  });
   $('sheetSpeak').classList.add('open');
 }
 
@@ -586,7 +601,7 @@ function openCardModal(cardId){
   const set = getSet(state.currentSetId);
   editingCardId = cardId || null;
   const c = cardId ? set.cards.find(x => x.id === cardId) : null;
-  $('cardModalTitle').textContent = c ? 'Sửa thẻ' : 'Thêm thẻ';
+  $('cardModalTitle').textContent = c ? 'Edit card' : 'Add card';
   $('fTerm').value = c ? c.term : '';
   $('fMeaning').value = c ? c.meaning : '';
   $('fExample').value = c ? (c.example || '') : '';
@@ -680,7 +695,7 @@ function importCSV(){
   $('csvInput').value = '';
   renderSetDetail();
   switchTab('cards');
-  if(added) toast(`Đã thêm ${added} thẻ`);
+  if(added) toast(`Added ${added} cards`);
 }
 
 function toast(msg){
@@ -707,7 +722,7 @@ function initVoices(){
 }
 function speak(text, lang){
   if(!text) return;
-  if(!('speechSynthesis' in window)) { toast('Thiết bị không hỗ trợ đọc'); return; }
+  if(!('speechSynthesis' in window)) { toast('Speech not supported'); return; }
   try{
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
@@ -722,22 +737,27 @@ function speak(text, lang){
   }catch(e){ console.warn(e); }
 }
 
-function speakCurrent(field){
+function speakField(field){
   const s = state.session;
   if(!s || s.done) return;
   const set = getSet(s.setId);
   const card = s.queue[s.pos];
   if(!card) return;
-  if(field === 'example') speak(card.example, set.sourceLang);
-  else speak(card.term, set.sourceLang);
+  const lang = (field === 'meaning' || field === 'exampleTrans') ? set.targetLang : set.sourceLang;
+  speak(card[field], lang);
 }
 
 /* ================= OPTIONS SHEET ================= */
-function openOptionsSheet(){
-  const set = getSet(state.currentSetId);
+function openOptionsSheet(inStudy){
+  const set = inStudy && state.session
+    ? getSet(state.session.setId)
+    : getSet(state.currentSetId);
   if(!set) return;
   pendingOpts = Object.assign({}, set.options);
   syncOptionsUI();
+  $('optionsTitle').textContent = inStudy ? 'Change study options' : 'Study options';
+  $('btnBegin').textContent = inStudy ? 'Apply' : 'Start';
+  $('btnBegin').dataset.inStudy = inStudy ? '1' : '0';
   $('sheetOptions').classList.add('open');
 }
 
@@ -775,7 +795,7 @@ function summaryHTML(rememberedCards, forgottenCards){
     if(!cards.length){
       return `<div class="summary-section">
         <div class="summary-head ${cls}">${title}<span class="count">0</span></div>
-        <div class="summary-empty">Không có thẻ nào</div>
+        <div class="summary-empty">No cards</div>
       </div>`;
     }
     return `<div class="summary-section">
@@ -787,8 +807,8 @@ function summaryHTML(rememberedCards, forgottenCards){
     </div>`;
   };
   return `<div class="summary-wrap">
-    ${section('✓ Đã nhớ', 'green', rememberedCards)}
-    ${section('😕 Chưa nhớ', 'red', forgottenCards)}
+    ${section('✓ Remembered', 'green', rememberedCards)}
+    ${section('✗ Forgot', 'red', forgottenCards)}
   </div>`;
 }
 
@@ -796,7 +816,7 @@ function summaryHTML(rememberedCards, forgottenCards){
 function beginStudy(){
   const set = getSet(state.currentSetId);
   if(!set || !set.cards.length) return;
-  if(pendingOpts) { set.options = Object.assign({}, pendingOpts); save(); }
+  if(pendingOpts){ set.options = Object.assign({}, pendingOpts); save(); }
 
   const o = set.options;
   let queue = set.cards.slice();
@@ -810,13 +830,51 @@ function beginStudy(){
     stage: 'front',
     showExample: false,
     batch: Math.max(1, o.batch),
-    done: null,
     batchStart: 0,
+    done: null,
     remembered: new Set(),
     forgotten: new Set()
   };
   closeSheets();
   showView('study');
+  renderStudy(true);
+}
+
+/* Apply new options to a live session */
+function applyOptionsLive(){
+  const s = state.session;
+  if(!s) return;
+  const set = getSet(s.setId);
+  if(!set) return;
+
+  const oldOpts = set.options;
+  const newOpts = Object.assign({}, pendingOpts);
+
+  const orderChanged  = oldOpts.order  !== newOpts.order;
+  const directionChanged = oldOpts.direction !== newOpts.direction;
+
+  set.options = newOpts;
+  save();
+
+  // Reorder remaining cards
+  if(orderChanged){
+    const head = s.queue.slice(0, s.pos + 1);
+    let tail = s.queue.slice(s.pos + 1);
+    if(newOpts.order === 'up') tail.reverse();
+    else if(newOpts.order === 'random') shuffle(tail);
+    s.queue = head.concat(tail);
+  }
+
+  // Update batch size
+  s.batch = Math.max(1, newOpts.batch);
+
+  // On direction change reset to front so the swap is visible
+  if(directionChanged){
+    s.stage = 'front';
+    s.showExample = false;
+  }
+
+  closeSheets();
   renderStudy(true);
 }
 
@@ -837,21 +895,22 @@ function renderStudy(autoSpeak){
     $('studyProgress').textContent = `${total} / ${total}`;
     $('studyBar').style.width = '100%';
     body.onclick = null;
-    body.classList.remove('center');
 
     const rememberedCards = s.queue.filter(c => s.remembered.has(c.id));
     const forgottenCards  = s.queue.filter(c => s.forgotten.has(c.id));
 
     body.innerHTML = `<div class="done-screen">
-      <div class="done-emoji">🏆</div>
-      <h2>Hoàn thành toàn bộ!</h2>
-      <p>Đã ôn ${total} thẻ · Nhớ ${rememberedCards.length} · Chưa nhớ ${forgottenCards.length}</p>
+      <div class="done-top">
+        <div class="done-emoji">🏆</div>
+        <h2>Session complete!</h2>
+        <p>Reviewed ${total} cards · Remembered ${rememberedCards.length} · Forgot ${forgottenCards.length}</p>
+      </div>
       ${summaryHTML(rememberedCards, forgottenCards)}
     </div>`;
     actions.innerHTML = `
       <div class="act-row">
-        <button class="btn ghost" id="btnBackSet" style="flex:1">Về bộ thẻ</button>
-        <button class="btn primary" id="btnRestart" style="flex:1">Ôn lại</button>
+        <button class="btn ghost" id="btnBackSet" style="flex:1">Back to set</button>
+        <button class="btn primary" id="btnRestart" style="flex:1">Study again</button>
       </div>`;
     $('btnBackSet').onclick = () => { state.session = null; openSet(set.id); };
     $('btnRestart').onclick = () => beginStudy();
@@ -861,47 +920,44 @@ function renderStudy(autoSpeak){
   /* ---------- BATCH DONE ---------- */
   if(s.done === 'batch'){
     const total = s.queue.length;
-    const batchNum = Math.floor(s.pos / s.batch);
     $('studyProgress').textContent = `${s.pos} / ${total}`;
     $('studyBar').style.width = (s.pos / total * 100) + '%';
     body.onclick = null;
-    body.classList.remove('center');
 
     const batchCards = s.queue.slice(s.batchStart, s.pos);
     const rememberedCards = batchCards.filter(c => s.remembered.has(c.id));
     const forgottenCards  = batchCards.filter(c => s.forgotten.has(c.id));
 
     body.innerHTML = `<div class="done-screen">
-      <div class="done-emoji">🎉</div>
-      <h2>Xong cụm ${batchNum}</h2>
-      <p>${batchCards.length} thẻ · Nhớ ${rememberedCards.length} · Chưa nhớ ${forgottenCards.length} · Còn ${total - s.pos} thẻ</p>
+      <div class="done-top">
+        <div class="done-emoji">🎉</div>
+        <h2>Batch complete</h2>
+        <p>${batchCards.length} cards · Remembered ${rememberedCards.length} · Forgot ${forgottenCards.length} · ${total - s.pos} left</p>
+      </div>
       ${summaryHTML(rememberedCards, forgottenCards)}
     </div>`;
     actions.innerHTML = `
       <div class="act-row">
-        <button class="btn ghost" id="btnRedoBatch" style="flex:1">↺ Làm lại cụm</button>
-        <button class="btn primary" id="btnNextBatch" style="flex:1">Cụm tiếp →</button>
+        <button class="btn ghost" id="btnRedoBatch" style="flex:1">↺ Redo batch</button>
+        <button class="btn primary" id="btnNextBatch" style="flex:1">Next batch →</button>
       </div>`;
     $('btnRedoBatch').onclick = () => {
-      // xoá kết quả cũ của cụm để tổng kết lại chính xác
       batchCards.forEach(c => { s.remembered.delete(c.id); s.forgotten.delete(c.id); });
       s.pos = s.batchStart;
       s.stage = 'front';
       s.showExample = false;
       s.done = null;
-      body.classList.add('center');
       renderStudy(true);
     };
     $('btnNextBatch').onclick = () => {
+      s.batchStart = s.pos;
       s.done = null;
-      body.classList.add('center');
       renderStudy(true);
     };
     return;
   }
 
   /* ---------- CARD ---------- */
-  body.classList.add('center');
   const card = s.queue[s.pos];
   if(!card){ s.done = 'all'; renderStudy(false); return; }
 
@@ -919,13 +975,13 @@ function renderStudy(autoSpeak){
     if(o.audioMode){
       body.innerHTML = `<div class="flashcard audio-hidden" data-action="flip">
         <div class="audio-icon">🔊</div>
-        <div class="hint">${o.autoRead ? 'Đang phát… nhấn để hiện nội dung' : 'Nhấn để hiện nội dung'}</div>
+        <div class="hint">${o.autoRead ? 'Playing… tap to reveal' : 'Tap to reveal'}</div>
       </div>`;
     } else {
       body.innerHTML = `<div class="flashcard" data-action="flip">
         <div class="card-lang">${langShort(frontLang)}</div>
         <div class="card-main">${esc(frontText)}</div>
-        <div class="hint">Nhấn để lật thẻ</div>
+        <div class="hint">Tap to flip</div>
       </div>`;
     }
   }
@@ -941,9 +997,9 @@ function renderStudy(autoSpeak){
         ${s.showExample
           ? `<div class="ex-src">${esc(card.example)}</div>
              ${card.exampleTrans ? `<div class="ex-tgt">${esc(card.exampleTrans)}</div>` : ''}`
-          : `<button class="show-ex-btn" data-action="showExample">👁 Hiện ví dụ</button>`}
+          : `<button class="show-ex-btn" data-action="showExample">👁 Show example</button>`}
       </div>` : ''}
-      <div class="hint">Nhấn để lật lại</div>
+      <div class="hint">Tap to flip back</div>
     </div>`;
   }
 
@@ -959,31 +1015,30 @@ function renderStudy(autoSpeak){
   };
 
   /* --- ACTIONS --- */
-  const speakRow = `
+  const listenRow = `
     <div class="act-row">
-      <button class="btn ghost sm flex1" id="btnSpeakWord">🔊 Từ</button>
-      <button class="btn ghost sm flex1" id="btnSpeakEx" ${card.example ? '' : 'disabled'}>🔊 Ví dụ</button>
+      <button class="btn ghost sm flex1" id="btnListen">🔊 Listen</button>
     </div>`;
 
   const navRow = `
     <div class="act-row">
       <button class="icon-btn round" id="btnPrev" ${s.pos === 0 ? 'disabled' : ''}>←</button>
-      <button class="btn danger flex1" id="btnForget">😕 Không nhớ</button>
-      <button class="btn success flex1" id="btnRemember">✓ Nhớ</button>
+      <button class="btn danger flex1" id="btnForget">✗ Forgot</button>
+      <button class="btn success flex1" id="btnRemember">✓ Got it</button>
       <button class="icon-btn round" id="btnNext">→</button>
     </div>`;
 
-  actions.innerHTML = speakRow + navRow;
+  actions.innerHTML = listenRow + navRow;
 
-  $('btnSpeakWord').onclick = () => speakCurrent('word');
-  $('btnSpeakEx').onclick = () => speakCurrent('example');
+  $('btnListen').onclick = () => openSpeakSheet(card, set);
   $('btnPrev').onclick = prevCard;
   $('btnNext').onclick = () => { s.showExample = false; nextCard(); };
   $('btnForget').onclick = () => recordAnswer(false);
   $('btnRemember').onclick = () => recordAnswer(true);
 
   if(autoSpeak && o.audioMode && o.autoRead && s.stage === 'front'){
-    setTimeout(() => speakCurrent(o.readWhat === 'example' ? 'example' : 'word'), 200);
+    const what = o.readWhat || 'term';
+    setTimeout(() => speakField(what), 200);
   }
 }
 
@@ -1015,7 +1070,7 @@ function nextCard(){
   s.stage = 'front';
   s.showExample = false;
   if(s.pos >= s.queue.length){ s.done = 'all'; renderStudy(false); return; }
-  if(s.pos % s.batch === 0){ s.done = 'batch'; s.batchStart = s.pos - s.batch; renderStudy(false); return; }
+  if(s.pos - s.batchStart >= s.batch){ s.done = 'batch'; renderStudy(false); return; }
   renderStudy(true);
 }
 
@@ -1065,13 +1120,13 @@ function init(){
   $('btnDeleteSet').onclick = () => {
     const set = getSet(state.currentSetId);
     if(!set) return;
-    if(confirm(`Xóa bộ thẻ "${set.name}"?`)){
+    if(confirm(`Delete set "${set.name}"?`)){
       state.sets = state.sets.filter(s => s.id !== set.id);
       save(); showView('sets');
     }
   };
 
-  $('btnStart').onclick = openOptionsSheet;
+  $('btnStart').onclick = () => openOptionsSheet(false);
 
   document.querySelectorAll('.tabs button').forEach(b => {
     b.onclick = () => switchTab(b.dataset.tab);
@@ -1099,29 +1154,20 @@ function init(){
     e.currentTarget.classList.toggle('on', pendingOpts.autoRead);
   };
   $('btnBegin').onclick = () => {
-    const set = getSet(state.currentSetId);
-    if(!set) return;
-    set.options = Object.assign({}, pendingOpts);
-    save();
-    beginStudy();
+    const inStudy = $('btnBegin').dataset.inStudy === '1';
+    if(inStudy){
+      applyOptionsLive();
+    } else {
+      const set = getSet(state.currentSetId);
+      if(!set) return;
+      set.options = Object.assign({}, pendingOpts);
+      save();
+      beginStudy();
+    }
   };
 
   /* card modal */
   $('btnSaveCard').onclick = saveCard;
-
-  /* speak sheet */
-  document.querySelectorAll('#sheetSpeak [data-speak]').forEach(b => {
-    b.onclick = () => {
-      const set = getSet(state.currentSetId);
-      if(!speakingCard || !set) return;
-      const what = b.dataset.speak;
-      if(what === 'term') speak(speakingCard.term, set.sourceLang);
-      else if(what === 'meaning') speak(speakingCard.meaning, set.targetLang);
-      else if(what === 'example') speak(speakingCard.example, set.sourceLang);
-      else if(what === 'exampleTrans') speak(speakingCard.exampleTrans, set.targetLang);
-      closeSheets();
-    };
-  });
 
   /* study */
   $('btnExitStudy').onclick = () => {
@@ -1130,14 +1176,7 @@ function init(){
     if('speechSynthesis' in window) speechSynthesis.cancel();
     openSet(sid);
   };
-  $('btnStudyOpts').onclick = () => {
-    const s = state.session;
-    if(!s) return;
-    const set = getSet(s.setId);
-    pendingOpts = Object.assign({}, set.options);
-    syncOptionsUI();
-    $('sheetOptions').classList.add('open');
-  };
+  $('btnStudyOpts').onclick = () => openOptionsSheet(true);
 
   /* close sheets on backdrop */
   document.querySelectorAll('[data-close]').forEach(el => {
