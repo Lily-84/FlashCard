@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0e1016">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Flashcards">
 <title>Flashcards</title>
 <style>
 :root{
@@ -22,7 +26,6 @@ button,input,select,textarea{font-family:inherit;color:inherit;}
 button{cursor:pointer;border:none;background:none;}
 input,textarea,select{outline:none;}
 
-/* ---------- Layout ---------- */
 .view{display:none;flex-direction:column;height:100vh;height:100dvh;}
 .view.active{display:flex;}
 .topbar{
@@ -33,7 +36,6 @@ input,textarea,select{outline:none;}
 .topbar h1{font-size:22px;font-weight:700;margin:0;flex:1;letter-spacing:-.3px;}
 .scroll{flex:1;overflow-y:auto;padding:0 16px calc(32px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;}
 
-/* ---------- Buttons ---------- */
 .icon-btn{
   width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;
   background:var(--surface);border:1px solid var(--border);font-size:18px;color:var(--text);
@@ -56,7 +58,6 @@ input,textarea,select{outline:none;}
 .btn.sm{padding:10px 14px;font-size:14px;border-radius:12px;}
 .flex1{flex:1;}
 
-/* ---------- Set list ---------- */
 .set-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
   padding:14px 14px 14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:10px;
@@ -79,7 +80,6 @@ input,textarea,select{outline:none;}
 .empty p{margin:0 0 22px;font-size:15px;}
 .empty .btn{display:inline-flex;margin:0 auto;}
 
-/* ---------- Set detail ---------- */
 .name-input{
   flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);
   border-radius:12px;padding:10px 14px;font-size:16px;font-weight:600;
@@ -122,7 +122,6 @@ textarea.csv{
 .hintbox code{background:var(--surface-2);padding:1px 6px;border-radius:5px;color:var(--accent);font-size:12px;}
 .section-label{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:20px 0 10px;}
 
-/* ---------- Sheets ---------- */
 .sheet{position:fixed;inset:0;z-index:100;display:none;}
 .sheet.open{display:block;}
 .sheet-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.65);animation:fade .2s;}
@@ -157,7 +156,6 @@ textarea.csv{
 }
 textarea.form-input{min-height:74px;resize:vertical;line-height:1.5;}
 
-/* ---------- Study ---------- */
 .study-top{padding-bottom:6px;}
 .study-info{flex:1;min-width:0;text-align:center;}
 .study-title{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -174,6 +172,18 @@ textarea.form-input{min-height:74px;resize:vertical;line-height:1.5;}
 }
 .act-row{display:flex;gap:10px;align-items:center;}
 .act-row .btn{white-space:nowrap;}
+
+.listen-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+}
+.listen-grid button{
+  padding:11px 8px;font-size:13px;font-weight:600;border-radius:12px;
+  background:var(--surface-2);border:1px solid var(--border);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:.15s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.listen-grid button:active:not(:disabled){background:var(--border);transform:scale(.97);}
+.listen-grid button:disabled{opacity:.28;}
 
 .flashcard{
   width:100%;min-height:52vh;background:linear-gradient(160deg,#1e2230,#161923);
@@ -205,7 +215,6 @@ textarea.form-input{min-height:74px;resize:vertical;line-height:1.5;}
 .audio-icon{font-size:60px;animation:pulse 1.6s ease-in-out infinite;}
 @keyframes pulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.12);opacity:1}}
 
-/* ---------- Done / Summary ---------- */
 .done-screen{text-align:left;padding:8px 0 0;width:100%;}
 .done-top{text-align:center;}
 .done-emoji{font-size:56px;margin-bottom:12px;line-height:1;}
@@ -238,16 +247,21 @@ textarea.form-input{min-height:74px;resize:vertical;line-height:1.5;}
 </head>
 <body>
 
-<!-- ============ SET LIST ============ -->
 <section id="view-sets" class="view active">
   <header class="topbar">
     <h1>Flashcard Sets</h1>
+    <button class="icon-btn" id="btnDownload" title="Download for offline use">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </button>
     <button class="icon-btn" id="btnNewSet">+</button>
   </header>
   <div class="scroll" id="setsList"></div>
 </section>
 
-<!-- ============ SET DETAIL ============ -->
 <section id="view-set" class="view">
   <header class="topbar">
     <button class="icon-btn" id="btnBackSets">←</button>
@@ -292,7 +306,6 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
   </div>
 </section>
 
-<!-- ============ STUDY ============ -->
 <section id="view-study" class="view">
   <header class="topbar study-top">
     <button class="icon-btn" id="btnExitStudy">✕</button>
@@ -307,7 +320,6 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
   <div class="study-actions" id="studyActions"></div>
 </section>
 
-<!-- ============ SHEET: STUDY OPTIONS ============ -->
 <div class="sheet" id="sheetOptions">
   <div class="sheet-backdrop" data-close></div>
   <div class="sheet-panel">
@@ -369,7 +381,6 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
   </div>
 </div>
 
-<!-- ============ SHEET: CARD EDIT ============ -->
 <div class="sheet" id="sheetCard">
   <div class="sheet-backdrop" data-close></div>
   <div class="sheet-panel">
@@ -383,7 +394,6 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
   </div>
 </div>
 
-<!-- ============ SHEET: SPEAK MENU ============ -->
 <div class="sheet" id="sheetSpeak">
   <div class="sheet-backdrop" data-close></div>
   <div class="sheet-panel">
@@ -419,7 +429,7 @@ const state = { sets: [], currentSetId: null, session: null };
 let pendingOpts = null;
 let editingCardId = null;
 let csvHeaderSkip = false;
-let speakCtx = null; // {card, set}
+let speakCtx = null;
 
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
 const $ = id => document.getElementById(id);
@@ -432,7 +442,77 @@ function defaultOptions(){
   return { direction:'source', order:'down', batch:5, audioMode:false, autoRead:true, readWhat:'term' };
 }
 
+/* ================= BASE64 (unicode-safe) ================= */
+function b64EncodeUnicode(str){
+  try{
+    return btoa(Array.from(new TextEncoder().encode(str), b => String.fromCharCode(b)).join(''));
+  }catch(e){ return ''; }
+}
+function b64DecodeUnicode(b64){
+  try{
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }catch(e){ return ''; }
+}
+
+/* ================= PWA SETUP (icon + manifest) ================= */
+const ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c8cff"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><rect width="512" height="512" rx="104" fill="#0e1016"/><rect x="88" y="130" width="290" height="176" rx="24" fill="#2b303d" transform="rotate(-6 233 218)"/><rect x="134" y="186" width="290" height="176" rx="24" fill="url(#g)"/><text x="279" y="304" font-family="Arial,Helvetica,sans-serif" font-size="122" font-weight="700" fill="#ffffff" text-anchor="middle">A</text><text x="370" y="340" font-family="Arial,Helvetica,sans-serif" font-size="70" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.78">あ</text></svg>';
+
+function setupPWA(){
+  try{
+    const iconUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(ICON_SVG);
+
+    const mkLink = (rel, href, extra) => {
+      const l = document.createElement('link');
+      l.rel = rel;
+      l.href = href;
+      l.dataset.dynamic = '1';
+      if(extra) for(const k in extra) l.setAttribute(k, extra[k]);
+      document.head.appendChild(l);
+      return l;
+    };
+
+    mkLink('icon', iconUri, { type:'image/svg+xml' });
+    mkLink('apple-touch-icon', iconUri);
+    mkLink('apple-touch-icon', iconUri, { sizes:'192x192' });
+    mkLink('apple-touch-icon', iconUri, { sizes:'512x512' });
+
+    const manifest = {
+      name: 'Flashcards',
+      short_name: 'Flashcards',
+      description: 'Offline flashcard study app',
+      start_url: './',
+      scope: './',
+      display: 'standalone',
+      orientation: 'portrait',
+      background_color: '#0e1016',
+      theme_color: '#0e1016',
+      icons: [
+        { src: iconUri, sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
+        { src: iconUri, sizes: '512x512', type: 'image/svg+xml', purpose: 'any' },
+        { src: iconUri, sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+    mkLink('manifest', URL.createObjectURL(blob));
+  }catch(e){ console.warn('PWA setup failed', e); }
+}
+
 /* ================= PERSISTENCE ================= */
+function seedFromEmbedded(){
+  try{
+    const seedEl = document.getElementById('seed-data');
+    if(!seedEl) return;
+    if(localStorage.getItem(STORE_KEY)) return;
+    const b64 = seedEl.getAttribute('data-b64');
+    if(!b64) return;
+    const json = b64DecodeUnicode(b64);
+    if(json) localStorage.setItem(STORE_KEY, json);
+  }catch(e){ console.warn('seed failed', e); }
+}
+
 function load(){
   try{
     const raw = localStorage.getItem(STORE_KEY);
@@ -454,6 +534,61 @@ function load(){
 function save(){
   try{ localStorage.setItem(STORE_KEY, JSON.stringify({ sets: state.sets })); }
   catch(e){ console.warn('save failed', e); }
+}
+
+/* ================= DOWNLOAD OFFLINE ================= */
+function downloadOffline(){
+  try{
+    const clone = document.documentElement.cloneNode(true);
+
+    // Remove runtime-only elements (they will be recreated on load)
+    clone.querySelectorAll('[data-dynamic]').forEach(el => el.remove());
+
+    // Reset UI state in the saved copy
+    clone.querySelectorAll('.sheet').forEach(el => el.classList.remove('open'));
+    clone.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+    const setsView = clone.querySelector('#view-sets');
+    if(setsView) setsView.classList.add('active');
+    clone.querySelectorAll('.tabs button').forEach(b =>
+      b.classList.toggle('active', b.dataset.tab === 'cards')
+    );
+    const cardTab = clone.querySelector('#tab-cards');
+    const addTab  = clone.querySelector('#tab-add');
+    if(cardTab) cardTab.style.display = '';
+    if(addTab)  addTab.style.display = 'none';
+
+    // Remove any previous seed
+    const oldSeed = clone.querySelector('#seed-data');
+    if(oldSeed) oldSeed.remove();
+
+    // Serialize
+    let html = '<!DOCTYPE html>\n' + clone.outerHTML;
+
+    // Embed current data as bootstrap seed
+    try{
+      const data = JSON.stringify({ sets: state.sets });
+      const b64 = b64EncodeUnicode(data);
+      if(b64){
+        html = html.replace(/<body([^>]*)>/i,
+          '<body$1><div id="seed-data" style="display:none" data-b64="' + b64 + '"></div>');
+      }
+    }catch(e){ console.warn(e); }
+
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'flashcards-offline.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+
+    toast('Saved! Open the file to use offline');
+  }catch(e){
+    console.warn(e);
+    toast('Download failed');
+  }
 }
 
 /* ================= VIEWS ================= */
@@ -574,7 +709,7 @@ function renderCardList(){
   });
 }
 
-/* ================= SPEAK SHEET ================= */
+/* ================= SPEAK SHEET (word list only) ================= */
 function openSpeakSheet(card, set){
   speakCtx = { card, set };
   const items = [
@@ -589,7 +724,7 @@ function openSpeakSheet(card, set){
   $('speakBody').querySelectorAll('[data-speak]').forEach(b => {
     b.onclick = () => {
       const item = items.find(x => x.key === b.dataset.speak);
-      if(item) speak(item.lang === set.targetLang ? card[item.key] : card[item.key], item.lang);
+      if(item) speak(card[item.key], item.lang);
       closeSheets();
     };
   });
@@ -701,10 +836,10 @@ function importCSV(){
 function toast(msg){
   const el = document.createElement('div');
   el.textContent = msg;
-  el.style.cssText = 'position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#2b3040;color:#fff;padding:12px 22px;border-radius:14px;font-size:14px;z-index:999;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:opacity .3s';
+  el.style.cssText = 'position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#2b3040;color:#fff;padding:12px 22px;border-radius:14px;font-size:14px;z-index:999;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:opacity .3s;max-width:80vw;text-align:center';
   document.body.appendChild(el);
-  setTimeout(() => { el.style.opacity = '0'; }, 1600);
-  setTimeout(() => el.remove(), 2000);
+  setTimeout(() => { el.style.opacity = '0'; }, 1900);
+  setTimeout(() => el.remove(), 2400);
 }
 
 /* ================= TABS ================= */
@@ -840,7 +975,6 @@ function beginStudy(){
   renderStudy(true);
 }
 
-/* Apply new options to a live session */
 function applyOptionsLive(){
   const s = state.session;
   if(!s) return;
@@ -856,7 +990,6 @@ function applyOptionsLive(){
   set.options = newOpts;
   save();
 
-  // Reorder remaining cards
   if(orderChanged){
     const head = s.queue.slice(0, s.pos + 1);
     let tail = s.queue.slice(s.pos + 1);
@@ -865,10 +998,8 @@ function applyOptionsLive(){
     s.queue = head.concat(tail);
   }
 
-  // Update batch size
   s.batch = Math.max(1, newOpts.batch);
 
-  // On direction change reset to front so the swap is visible
   if(directionChanged){
     s.stage = 'front';
     s.showExample = false;
@@ -970,7 +1101,6 @@ function renderStudy(autoSpeak){
   $('studyProgress').textContent = `${s.pos + 1} / ${s.queue.length}`;
   $('studyBar').style.width = ((s.pos + 1) / s.queue.length * 100) + '%';
 
-  /* --- FRONT STAGE --- */
   if(s.stage === 'front'){
     if(o.audioMode){
       body.innerHTML = `<div class="flashcard audio-hidden" data-action="flip">
@@ -984,9 +1114,7 @@ function renderStudy(autoSpeak){
         <div class="hint">Tap to flip</div>
       </div>`;
     }
-  }
-  /* --- BACK STAGE --- */
-  else {
+  } else {
     body.innerHTML = `<div class="flashcard" data-action="flip">
       <div class="card-lang">${langShort(frontLang)}</div>
       <div class="card-main small">${esc(frontText)}</div>
@@ -1014,10 +1142,12 @@ function renderStudy(autoSpeak){
     flipCard();
   };
 
-  /* --- ACTIONS --- */
   const listenRow = `
-    <div class="act-row">
-      <button class="btn ghost sm flex1" id="btnListen">🔊 Listen</button>
+    <div class="listen-grid">
+      <button id="btnListenTerm" ${card.term ? '' : 'disabled'}>🔊 Term</button>
+      <button id="btnListenMeaning" ${card.meaning ? '' : 'disabled'}>🔊 Meaning</button>
+      <button id="btnListenExample" ${card.example ? '' : 'disabled'}>🔊 Example</button>
+      <button id="btnListenExTrans" ${card.exampleTrans ? '' : 'disabled'}>🔊 Ex. translation</button>
     </div>`;
 
   const navRow = `
@@ -1030,7 +1160,10 @@ function renderStudy(autoSpeak){
 
   actions.innerHTML = listenRow + navRow;
 
-  $('btnListen').onclick = () => openSpeakSheet(card, set);
+  $('btnListenTerm').onclick = () => speakField('term');
+  $('btnListenMeaning').onclick = () => speakField('meaning');
+  $('btnListenExample').onclick = () => speakField('example');
+  $('btnListenExTrans').onclick = () => speakField('exampleTrans');
   $('btnPrev').onclick = prevCard;
   $('btnNext').onclick = () => { s.showExample = false; nextCard(); };
   $('btnForget').onclick = () => recordAnswer(false);
@@ -1093,14 +1226,15 @@ function initLangSelects(){
 }
 
 function init(){
+  seedFromEmbedded();
   load();
   initLangSelects();
   initVoices();
+  setupPWA();
 
-  /* set list */
   $('btnNewSet').onclick = createSet;
+  $('btnDownload').onclick = downloadOffline;
 
-  /* set detail */
   $('btnBackSets').onclick = () => { state.session = null; showView('sets'); };
 
   $('setNameInput').addEventListener('input', e => {
@@ -1132,7 +1266,6 @@ function init(){
     b.onclick = () => switchTab(b.dataset.tab);
   });
 
-  /* add tab */
   $('btnImportCsv').onclick = importCSV;
   $('btnAddManual').onclick = () => openCardModal(null);
   $('optHeader').onclick = e => {
@@ -1140,7 +1273,6 @@ function init(){
     e.currentTarget.classList.toggle('on', csvHeaderSkip);
   };
 
-  /* options sheet */
   bindChipGroup('optDirection', 'direction', false);
   bindChipGroup('optOrder', 'order', false);
   bindChipGroup('optBatch', 'batch', true);
@@ -1166,10 +1298,8 @@ function init(){
     }
   };
 
-  /* card modal */
   $('btnSaveCard').onclick = saveCard;
 
-  /* study */
   $('btnExitStudy').onclick = () => {
     const sid = state.session ? state.session.setId : state.currentSetId;
     state.session = null;
@@ -1178,7 +1308,6 @@ function init(){
   };
   $('btnStudyOpts').onclick = () => openOptionsSheet(true);
 
-  /* close sheets on backdrop */
   document.querySelectorAll('[data-close]').forEach(el => {
     el.onclick = () => closeSheets();
   });
