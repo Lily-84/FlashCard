@@ -1753,8 +1753,8 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
     </div>`;
 				actions.innerHTML = `
       <div class="act-row">
-        <button class="btn ghost" id="btnRedoBatch" style="flex:1">↺ Redo batch</button>
         <button class="btn primary" id="btnNextBatch" style="flex:1">${isLastBatch ? 'See summary →' : 'Next batch →'}</button>
+        <button class="btn ghost" id="btnRedoBatch" style="flex:1">↺ Redo batch</button>
       </div>`;
 
 				// Redo the same batch (works for the last batch too)
@@ -1838,10 +1838,10 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 
 			const listenRow = `
     <div class="listen-grid">
-      <button id="btnListenTerm" ${card.term ? '' : 'disabled'}>🔊 Term</button>
-      <button id="btnListenMeaning" ${card.meaning ? '' : 'disabled'}>🔊 Meaning</button>
-      <button id="btnListenExample" ${card.example ? '' : 'disabled'}>🔊 Example</button>
-      <button id="btnListenExTrans" ${card.exampleTrans ? '' : 'disabled'}>🔊 Ex. translation</button>
+		<button id="btnListenMeaning" ${card.meaning ? '' : 'disabled'}>🔊 Meaning</button>
+    	<button id="btnListenTerm" ${card.term ? '' : 'disabled'}>🔊 Term</button>
+    	<button id="btnListenExTrans" ${card.exampleTrans ? '' : 'disabled'}>🔊 Ex. translation</button>
+    	<button id="btnListenExample" ${card.example ? '' : 'disabled'}>🔊 Example</button>
     </div>`;
 
 			// Prev is disabled only at the very first card of the whole session.
