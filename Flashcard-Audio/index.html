@@ -1086,6 +1086,20 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 		</div>
 	</div>
 
+	<!-- NEW: generic confirm sheet -->
+	<div class="sheet" id="sheetConfirm">
+		<div class="sheet-backdrop" data-close></div>
+		<div class="sheet-panel">
+			<div class="sheet-handle"></div>
+			<h3 id="confirmTitle">Confirm</h3>
+			<p id="confirmMessage" style="color:var(--muted);font-size:14.5px;line-height:1.6;margin:0 0 22px;"></p>
+			<div class="act-row">
+				<button class="btn ghost flex1" id="confirmCancel">Cancel</button>
+				<button class="btn primary flex1" id="confirmOk">OK</button>
+			</div>
+		</div>
+	</div>
+
 	<script>
 		/* ================= LANGUAGES ================= */
 		const LANGUAGES = [
@@ -1152,14 +1166,11 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 		function setupPWA() {
 			try {
 				const iconUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(ICON_SVG);
-
-				// Favicon / Apple touch icon
 				injectLink('icon', iconUri, { type: 'image/svg+xml' });
 				injectLink('apple-touch-icon', iconUri);
 				injectLink('apple-touch-icon', iconUri, { sizes: '192x192' });
 				injectLink('apple-touch-icon', iconUri, { sizes: '512x512' });
 
-				// Manifest (data URI — works even without a separate manifest.json)
 				const manifest = {
 					name: 'Flashcards',
 					short_name: 'Flashcards',
@@ -1182,15 +1193,12 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 				injectLink('manifest', manifestUri);
 			} catch (e) { console.warn('[PWA] manifest setup failed', e); }
 
-			// Register service worker from ./sw.js
 			if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
 				window.addEventListener('load', () => {
 					navigator.serviceWorker.register('./sw.js', { scope: './' })
 						.then(reg => console.info('[PWA] Service worker registered:', reg.scope))
 						.catch(err => console.warn('[PWA] Service worker registration failed:', err));
 				});
-			} else if (location.protocol === 'file:') {
-				console.info('[PWA] Service worker skipped (file:// protocol). Host the page to enable offline mode.');
 			}
 		}
 
@@ -1588,6 +1596,16 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
 		}
 
+		/* ================= GENERIC CONFIRM ================= */
+		function showConfirm(title, message, onOk, okLabel) {
+			$('confirmTitle').textContent = title;
+			$('confirmMessage').textContent = message;
+			$('confirmOk').textContent = okLabel || 'OK';
+			$('confirmOk').onclick = () => { closeSheets(); if (onOk) onOk(); };
+			$('confirmCancel').onclick = () => closeSheets();
+			$('sheetConfirm').classList.add('open');
+		}
+
 		/* ================= SUMMARY BUILDER ================= */
 		function summaryHTML(rememberedCards, forgottenCards) {
 			const section = (title, cls, cards) => {
@@ -1630,6 +1648,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 				showExample: false,
 				batch: Math.max(1, o.batch),
 				batchStart: 0,
+				batchStarts: [0],   // NEW: history stack of batch start positions
 				done: null,
 				remembered: new Set(),
 				forgotten: new Set()
@@ -1722,20 +1741,23 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 				const batchCards = s.queue.slice(s.batchStart, s.pos);
 				const rememberedCards = batchCards.filter(c => s.remembered.has(c.id));
 				const forgottenCards = batchCards.filter(c => s.forgotten.has(c.id));
+				const isLastBatch = s.pos >= s.queue.length;
 
 				body.innerHTML = `<div class="done-screen">
       <div class="done-top">
         <div class="done-emoji">🎉</div>
         <h2>Batch complete</h2>
-        <p>${batchCards.length} cards · Remembered ${rememberedCards.length} · Forgot ${forgottenCards.length} · ${total - s.pos} left</p>
+        <p>${batchCards.length} cards · Remembered ${rememberedCards.length} · Forgot ${forgottenCards.length}${isLastBatch ? '' : ` · ${total - s.pos} left`}</p>
       </div>
       ${summaryHTML(rememberedCards, forgottenCards)}
     </div>`;
 				actions.innerHTML = `
       <div class="act-row">
         <button class="btn ghost" id="btnRedoBatch" style="flex:1">↺ Redo batch</button>
-        <button class="btn primary" id="btnNextBatch" style="flex:1">Next batch →</button>
+        <button class="btn primary" id="btnNextBatch" style="flex:1">${isLastBatch ? 'See summary →' : 'Next batch →'}</button>
       </div>`;
+
+				// Redo the same batch (works for the last batch too)
 				$('btnRedoBatch').onclick = () => {
 					batchCards.forEach(c => { s.remembered.delete(c.id); s.forgotten.delete(c.id); });
 					s.pos = s.batchStart;
@@ -1744,7 +1766,15 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 					s.done = null;
 					renderStudy(true);
 				};
+
+				// Move to next batch, or jump to the final summary if this was the last batch
 				$('btnNextBatch').onclick = () => {
+					if (s.pos >= s.queue.length) {
+						s.done = 'all';
+						renderStudy(false);
+						return;
+					}
+					s.batchStarts.push(s.pos);
 					s.batchStart = s.pos;
 					s.done = null;
 					renderStudy(true);
@@ -1814,9 +1844,12 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
       <button id="btnListenExTrans" ${card.exampleTrans ? '' : 'disabled'}>🔊 Ex. translation</button>
     </div>`;
 
+			// Prev is disabled only at the very first card of the whole session.
+			// At the first card of any later batch, it is enabled and triggers a confirm popup.
+			const prevDisabled = (s.pos === 0);
 			const navRow = `
     <div class="act-row">
-      <button class="icon-btn round" id="btnPrev" ${s.pos === 0 ? 'disabled' : ''}>←</button>
+      <button class="icon-btn round" id="btnPrev" ${prevDisabled ? 'disabled' : ''}>←</button>
       <button class="btn danger flex1" id="btnForget">✗ Forgot</button>
       <button class="btn success flex1" id="btnRemember">✓ Got it</button>
       <button class="icon-btn round" id="btnNext">→</button>
@@ -1861,25 +1894,60 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			nextCard();
 		}
 
+		/* ============ FIX #1: batch boundary takes priority over queue end ============ */
 		function nextCard() {
 			const s = state.session;
 			s.pos++;
 			s.stage = 'front';
 			s.showExample = false;
-			if (s.pos >= s.queue.length) { s.done = 'all'; renderStudy(false); return; }
-			if (s.pos - s.batchStart >= s.batch) { s.done = 'batch'; renderStudy(false); return; }
+
+			const batchFull = (s.pos - s.batchStart) >= s.batch;
+			const queueEnd = s.pos >= s.queue.length;
+
+			// Even when the queue ends exactly on a batch boundary, still show the
+			// batch-complete screen so the last batch can be redone.
+			if (batchFull || queueEnd) {
+				s.done = 'batch';
+				renderStudy(false);
+				return;
+			}
 			renderStudy(true);
 		}
 
+		/* ============ FIX #2: prev respects batch boundaries ============ */
 		function prevCard() {
 			const s = state.session;
 			if (!s || s.done) return;
-			if (s.pos > 0) {
+
+			// Normal back navigation inside the current batch
+			if (s.pos > s.batchStart) {
 				s.pos--;
 				s.stage = 'front';
 				s.showExample = false;
 				renderStudy(true);
+				return;
 			}
+
+			// At the first card of the current batch
+			if (s.batchStarts.length <= 1) {
+				// Already at the first card of the very first batch — nothing to do
+				return;
+			}
+
+			// Ask the user if they want to replay the previous batch
+			showConfirm(
+				'Replay previous batch?',
+				'You are at the first card of this batch. Go back and study the previous batch from the start?',
+				() => {
+					s.batchStarts.pop();
+					s.batchStart = s.batchStarts[s.batchStarts.length - 1];
+					s.pos = s.batchStart;
+					s.stage = 'front';
+					s.showExample = false;
+					renderStudy(true);
+				},
+				'Replay'
+			);
 		}
 
 		/* ================= INIT ================= */
