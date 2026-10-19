@@ -643,9 +643,10 @@
 		.study-body {
 			flex: 1;
 			display: flex;
+			position: relative;
 			align-items: center;
 			justify-content: center;
-			padding: 16px 20px;
+			padding: 5px 20px;
 			overflow-y: auto;
 			-webkit-overflow-scrolling: touch;
 		}
@@ -703,6 +704,8 @@
 
 		.flashcard {
 			width: 100%;
+			height: 100%;
+			position: relative;
 			min-height: 52vh;
 			background: linear-gradient(160deg, #1e2230, #161923);
 			border: 1px solid var(--border);
@@ -717,6 +720,14 @@
 			animation: pop .22s ease;
 			box-shadow: 0 24px 60px -30px #000;
 			cursor: pointer;
+		}
+
+		#drawingBoard {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			z-index: 1;
+			display: none;
 		}
 
 		@keyframes pop {
@@ -926,7 +937,6 @@
 </head>
 
 <body>
-
 	<section id="view-sets" class="view active">
 		<header class="topbar">
 			<h1>Flashcard Sets</h1>
@@ -1100,6 +1110,9 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 		</div>
 	</div>
 
+	<div id="drawingBoard"></div>
+
+	<script src="drawing-board.js"></script>
 	<script>
 		/* ================= LANGUAGES ================= */
 		const LANGUAGES = [
@@ -1128,6 +1141,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 		let csvHeaderSkip = false;
 		let speakCtx = null;
 		let deferredInstall = null;
+		let drawingBoard = new DrawingBoard('#drawingBoard');
 
 		const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
 		const $ = id => document.getElementById(id);
@@ -1274,25 +1288,26 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 		function renderSets() {
 			const list = $('setsList');
 			if (!state.sets.length) {
-				list.innerHTML = `<div class="empty">
-      <div class="empty-emoji">🗂️</div>
-      <p>No flashcard sets yet</p>
-      <button class="btn primary" id="btnEmptyNew">Create your first set</button>
-    </div>`;
+				list.innerHTML = `
+				<div class="empty">
+					<div class="empty-emoji">🗂️</div>
+					<p>No flashcard sets yet</p>
+					<button class="btn primary" id="btnEmptyNew">Create your first set</button>
+				</div>`;
 				$('btnEmptyNew').onclick = createSet;
 				return;
 			}
 			list.innerHTML = state.sets.map((s, i) => `
-    <div class="set-card" data-id="${s.id}">
-      <div class="set-info" data-act="open">
-        <div class="set-name">${esc(s.name)}</div>
-        <div class="set-meta">${s.cards.length} cards · ${langShort(s.sourceLang)} → ${langShort(s.targetLang)}</div>
-      </div>
-      <div class="set-ctrl">
-        <button data-act="up" ${i === 0 ? 'disabled' : ''}>▲</button>
-        <button data-act="down" ${i === state.sets.length - 1 ? 'disabled' : ''}>▼</button>
-      </div>
-    </div>`).join('');
+				<div class="set-card" data-id="${s.id}">
+				<div class="set-info" data-act="open">
+					<div class="set-name">${esc(s.name)}</div>
+					<div class="set-meta">${s.cards.length} cards · ${langShort(s.sourceLang)} → ${langShort(s.targetLang)}</div>
+				</div>
+				<div class="set-ctrl">
+					<button data-act="up" ${i === 0 ? 'disabled' : ''}>▲</button>
+					<button data-act="down" ${i === state.sets.length - 1 ? 'disabled' : ''}>▼</button>
+				</div>
+				</div>`).join('');
 
 			list.querySelectorAll('.set-card').forEach(el => {
 				el.addEventListener('click', e => {
@@ -1349,19 +1364,19 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			const box = $('tab-cards');
 			if (!set.cards.length) {
 				box.innerHTML = `<div class="empty" style="padding:50px 20px">
-      <div class="empty-emoji">📝</div><p>This set has no cards yet</p></div>`;
+      				<div class="empty-emoji">📝</div><p>This set has no cards yet</p></div>`;
 				return;
 			}
 			box.innerHTML = set.cards.map(c => `
-    <div class="word-item" data-id="${c.id}">
-      <div class="wi-main" data-act="edit">
-        <div class="wi-term">${esc(c.term)}</div>
-        <div class="wi-mean">${esc(c.meaning)}</div>
-        ${c.example ? `<div class="wi-ex">${esc(c.example)}</div>` : ''}
-      </div>
-      <button class="wi-speak" data-act="speak" title="Listen">🔊</button>
-      <button class="wi-del" data-act="del">✕</button>
-    </div>`).join('');
+				<div class="word-item" data-id="${c.id}">
+				<div class="wi-main" data-act="edit">
+					<div class="wi-term">${esc(c.term)}</div>
+					<div class="wi-mean">${esc(c.meaning)}</div>
+					${c.example ? `<div class="wi-ex">${esc(c.example)}</div>` : ''}
+				</div>
+				<button class="wi-speak" data-act="speak" title="Listen">🔊</button>
+				<button class="wi-del" data-act="del">✕</button>
+				</div>`).join('');
 
 			box.querySelectorAll('.word-item').forEach(el => {
 				el.addEventListener('click', e => {
@@ -1611,22 +1626,22 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			const section = (title, cls, cards) => {
 				if (!cards.length) {
 					return `<div class="summary-section">
-        <div class="summary-head ${cls}">${title}<span class="count">0</span></div>
-        <div class="summary-empty">No cards</div>
-      </div>`;
+						<div class="summary-head ${cls}">${title}<span class="count">0</span></div>
+						<div class="summary-empty">No cards</div>
+					</div>`;
 				}
 				return `<div class="summary-section">
-      <div class="summary-head ${cls}">${title}<span class="count">${cards.length}</span></div>
-      ${cards.map(c => `<div class="summary-item">
-        <div class="st">${esc(c.term)}</div>
-        <div class="sm">${esc(c.meaning)}</div>
-      </div>`).join('')}
-    </div>`;
+					<div class="summary-head ${cls}">${title}<span class="count">${cards.length}</span></div>
+					${cards.map(c => `<div class="summary-item">
+						<div class="st">${esc(c.term)}</div>
+						<div class="sm">${esc(c.meaning)}</div>
+					</div>`).join('')}
+					</div>`;
 			};
 			return `<div class="summary-wrap">
-    ${section('✓ Remembered', 'green', rememberedCards)}
-    ${section('✗ Forgot', 'red', forgottenCards)}
-  </div>`;
+				${section('✓ Remembered', 'green', rememberedCards)}
+				${section('✗ Forgot', 'red', forgottenCards)}
+			</div>`;
 		}
 
 		/* ================= STUDY SESSION ================= */
@@ -1653,6 +1668,8 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 				remembered: new Set(),
 				forgotten: new Set()
 			};
+			drawingBoard.clear();
+
 			closeSheets();
 			showView('study');
 			renderStudy(true);
@@ -1701,6 +1718,9 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			const body = $('studyBody');
 			const actions = $('studyActions');
 
+			$('drawingBoard').style.display = 'none';
+			document.body.appendChild($('drawingBoard'));
+
 			$('studyTitle').textContent = set.name;
 
 			/* ---------- ALL DONE ---------- */
@@ -1713,19 +1733,20 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 				const rememberedCards = s.queue.filter(c => s.remembered.has(c.id));
 				const forgottenCards = s.queue.filter(c => s.forgotten.has(c.id));
 
-				body.innerHTML = `<div class="done-screen">
-      <div class="done-top">
-        <div class="done-emoji">🏆</div>
-        <h2>Session complete!</h2>
-        <p>Reviewed ${total} cards · Remembered ${rememberedCards.length} · Forgot ${forgottenCards.length}</p>
-      </div>
-      ${summaryHTML(rememberedCards, forgottenCards)}
-    </div>`;
+				body.innerHTML = `
+				<div class="done-screen">
+					<div class="done-top">
+						<div class="done-emoji">🏆</div>
+						<h2>Session complete!</h2>
+						<p>Reviewed ${total} cards · Remembered ${rememberedCards.length} · Forgot ${forgottenCards.length}</p>
+					</div>
+					${summaryHTML(rememberedCards, forgottenCards)}
+				</div>`;
 				actions.innerHTML = `
-      <div class="act-row">
-        <button class="btn ghost" id="btnBackSet" style="flex:1">Back to set</button>
-        <button class="btn primary" id="btnRestart" style="flex:1">Study again</button>
-      </div>`;
+					<div class="act-row">
+						<button class="btn ghost" id="btnBackSet" style="flex:1">Back to set</button>
+						<button class="btn primary" id="btnRestart" style="flex:1">Study again</button>
+					</div>`;
 				$('btnBackSet').onclick = () => { state.session = null; openSet(set.id); };
 				$('btnRestart').onclick = () => beginStudy();
 				return;
@@ -1743,19 +1764,20 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 				const forgottenCards = batchCards.filter(c => s.forgotten.has(c.id));
 				const isLastBatch = s.pos >= s.queue.length;
 
-				body.innerHTML = `<div class="done-screen">
-      <div class="done-top">
-        <div class="done-emoji">🎉</div>
-        <h2>Batch complete</h2>
-        <p>${batchCards.length} cards · Remembered ${rememberedCards.length} · Forgot ${forgottenCards.length}${isLastBatch ? '' : ` · ${total - s.pos} left`}</p>
-      </div>
-      ${summaryHTML(rememberedCards, forgottenCards)}
-    </div>`;
+				body.innerHTML = `
+					<div class="done-screen">
+						<div class="done-top">
+							<div class="done-emoji">🎉</div>
+							<h2>Batch complete</h2>
+							<p>${batchCards.length} cards · Remembered ${rememberedCards.length} · Forgot ${forgottenCards.length}${isLastBatch ? '' : ` · ${total - s.pos} left`}</p>
+						</div>
+						${summaryHTML(rememberedCards, forgottenCards)}
+					</div>`;
 				actions.innerHTML = `
-      <div class="act-row">
-        <button class="btn primary" id="btnNextBatch" style="flex:1">${isLastBatch ? 'See summary →' : 'Next batch →'}</button>
-        <button class="btn ghost" id="btnRedoBatch" style="flex:1">↺ Redo batch</button>
-      </div>`;
+					<div class="act-row">
+						<button class="btn primary" id="btnNextBatch" style="flex:1">${isLastBatch ? 'See summary →' : 'Next batch →'}</button>
+						<button class="btn ghost" id="btnRedoBatch" style="flex:1">↺ Redo batch</button>
+					</div>`;
 
 				// Redo the same batch (works for the last batch too)
 				$('btnRedoBatch').onclick = () => {
@@ -1791,41 +1813,65 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			const backText = frontIsTerm ? card.meaning : card.term;
 			const frontLang = frontIsTerm ? set.sourceLang : set.targetLang;
 			const backLang = frontIsTerm ? set.targetLang : set.sourceLang;
+			const drawingBoardButton = 
+				`<button id="toggleDrawBtn" title="openDrawingTool" style="position:absolute;right:12px;bottom:12px;width:44px;height:44px;border:0;border-radius:50%;background:#333;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M12 3a9 9 0 1 0 0 18h1.5a2 2 0 0 0 1.5-3.3 1.8 1.8 0 0 1 1.4-3h1.1A4.5 4.5 0 0 0 22 10.2C22 6.2 17.5 3 12 3Z"/>
+						<circle cx="7.5" cy="10" r="1" fill="currentColor"/>
+						<circle cx="10" cy="6.5" r="1" fill="currentColor"/>
+						<circle cx="15" cy="7" r="1" fill="currentColor"/>
+						<circle cx="17.5" cy="10.5" r="1" fill="currentColor"/>
+					</svg>
+				</button>
+			`;
 
 			$('studyProgress').textContent = `${s.pos + 1} / ${s.queue.length}`;
 			$('studyBar').style.width = ((s.pos + 1) / s.queue.length * 100) + '%';
 
 			if (s.stage === 'front') {
 				if (o.audioMode) {
-					body.innerHTML = `<div class="flashcard audio-hidden" data-action="flip">
-        <div class="audio-icon">🔊</div>
-        <div class="hint">${o.autoRead ? 'Playing… tap to reveal' : 'Tap to reveal'}</div>
-      </div>`;
+					body.innerHTML = 
+					`<div class="flashcard audio-hidden" data-action="flip">
+						<div class="audio-icon">🔊</div>
+						<div class="hint">${o.autoRead ? 'Playing… tap to reveal' : 'Tap to reveal'}</div>
+						${drawingBoardButton}
+					</div>`;
 				} else {
-					body.innerHTML = `<div class="flashcard" data-action="flip">
-        <div class="card-lang">${langShort(frontLang)}</div>
-        <div class="card-main">${esc(frontText)}</div>
-        <div class="hint">Tap to flip</div>
-      </div>`;
+					body.innerHTML = 
+					`<div class="flashcard" data-action="flip">
+						<div class="card-lang">${langShort(frontLang)}</div>
+						<div class="card-main">${esc(frontText)}</div>
+						<div class="hint">Tap to flip</div>
+						${drawingBoardButton}
+					</div>`;
 				}
 			} else {
-				body.innerHTML = `<div class="flashcard" data-action="flip">
-      <div class="card-lang">${langShort(frontLang)}</div>
-      <div class="card-main small">${esc(frontText)}</div>
-      <div class="card-divider"></div>
-      <div class="card-lang">${langShort(backLang)}</div>
-      <div class="card-main">${esc(backText)}</div>
-      ${card.example ? `<div class="example">
-        ${s.showExample
-							? `<div class="ex-src">${esc(card.example)}</div>
-             ${card.exampleTrans ? `<div class="ex-tgt">${esc(card.exampleTrans)}</div>` : ''}`
-							: `<button class="show-ex-btn" data-action="showExample">👁 Show example</button>`}
-      </div>` : ''}
-      <div class="hint">Tap to flip back</div>
-    </div>`;
+				body.innerHTML = `
+					<div class="flashcard" data-action="flip">
+						<div class="card-lang">${langShort(frontLang)}</div>
+						<div class="card-main small">${esc(frontText)}</div>
+						<div class="card-divider"></div>
+						<div class="card-lang">${langShort(backLang)}</div>
+						<div class="card-main">${esc(backText)}</div>
+						${card.example ? `
+							<div class="example">
+								${s.showExample ? `
+									<div class="ex-src">${esc(card.example)}</div>
+									${card.exampleTrans ? `
+										<div class="ex-tgt">${esc(card.exampleTrans)}</div>
+									` : ''}
+								` : `
+									<button class="show-ex-btn" data-action="showExample">👁 Show example</button>
+								`}
+							</div>
+						` : ''}
+						<div class="hint">Tap to flip back</div>
+						${drawingBoardButton}
+					</div>`;
 			}
 
 			body.onclick = e => {
+				if (e.target.closest('#drawingBoard')) return;
 				const btn = e.target.closest('[data-action]');
 				const action = btn ? btn.dataset.action : null;
 				if (action === 'showExample') {
@@ -1835,25 +1881,31 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 				}
 				flipCard();
 			};
+			body.appendChild($('drawingBoard'));
+
+			$('toggleDrawBtn').onclick = e => {
+				e.stopPropagation();
+				$('drawingBoard').style.display = $('drawingBoard').style.display === 'none' ? 'block' : 'none';
+			};
 
 			const listenRow = `
-    <div class="listen-grid">
-		<button id="btnListenMeaning" ${card.meaning ? '' : 'disabled'}>🔊 Meaning</button>
-    	<button id="btnListenTerm" ${card.term ? '' : 'disabled'}>🔊 Term</button>
-    	<button id="btnListenExTrans" ${card.exampleTrans ? '' : 'disabled'}>🔊 Ex. translation</button>
-    	<button id="btnListenExample" ${card.example ? '' : 'disabled'}>🔊 Example</button>
-    </div>`;
+				<div class="listen-grid">
+					<button id="btnListenMeaning" ${card.meaning ? '' : 'disabled'}>🔊 Meaning</button>
+					<button id="btnListenTerm" ${card.term ? '' : 'disabled'}>🔊 Term</button>
+					<button id="btnListenExTrans" ${card.exampleTrans ? '' : 'disabled'}>🔊 Ex. translation</button>
+					<button id="btnListenExample" ${card.example ? '' : 'disabled'}>🔊 Example</button>
+				</div>`;
 
 			// Prev is disabled only at the very first card of the whole session.
 			// At the first card of any later batch, it is enabled and triggers a confirm popup.
 			const prevDisabled = (s.pos === 0);
 			const navRow = `
-    <div class="act-row">
-      <button class="icon-btn round" id="btnPrev" ${prevDisabled ? 'disabled' : ''}>←</button>
-      <button class="btn danger flex1" id="btnForget">✗ Forgot</button>
-      <button class="btn success flex1" id="btnRemember">✓ Got it</button>
-      <button class="icon-btn round" id="btnNext">→</button>
-    </div>`;
+				<div class="act-row">
+					<button class="icon-btn round" id="btnPrev" ${prevDisabled ? 'disabled' : ''}>←</button>
+					<button class="btn danger flex1" id="btnForget">✗ Forgot</button>
+					<button class="btn success flex1" id="btnRemember">✓ Got it</button>
+					<button class="icon-btn round" id="btnNext">→</button>
+				</div>`;
 
 			actions.innerHTML = listenRow + navRow;
 
@@ -1896,6 +1948,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 
 		/* ============ FIX #1: batch boundary takes priority over queue end ============ */
 		function nextCard() {
+			drawingBoard.clear();
 			const s = state.session;
 			s.pos++;
 			s.stage = 'front';
@@ -1916,6 +1969,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 
 		/* ============ FIX #2: prev respects batch boundaries ============ */
 		function prevCard() {
+			drawingBoard.clear();
 			const s = state.session;
 			if (!s || s.done) return;
 

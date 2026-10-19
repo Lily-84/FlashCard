@@ -12,8 +12,9 @@ const CACHE_NAME = `flashcards-${CACHE_VERSION}`;
 const PRECACHE_URLS = [
   './',
   './index.html',
+  './drawing-board.js',
   './manifest.json',
-  './sw.js'
+  './sw.js',
 ];
 
 /* -------- INSTALL -------- */
