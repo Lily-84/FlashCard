@@ -134,23 +134,31 @@ class DrawingBoard {
     bar.appendChild(this.penBtn);
     bar.appendChild(this.eraserBtn);
 
+
     // --- color ---
     const colorWrap = document.createElement('label');
     colorWrap.title = 'color';
     colorWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
     const colorLabel = document.createElement('span');
     this.colorInput = document.createElement('input');
     this.colorInput.type = 'color';
     this.colorInput.value = this.color;
     this.colorInput.style.cssText = `
-      width: 28px; height: 28px; padding: 0; border: none;
-      background: transparent; cursor: pointer;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
     `;
-    this.colorInput.addEventListener('input', () => {
+
+    this.colorInput.addEventListener('input', (e) => {
       e.stopPropagation();
       this.setColor(this.colorInput.value);
       this.setTool('pen');
     });
+
     colorWrap.appendChild(colorLabel);
     colorWrap.appendChild(this.colorInput);
     bar.appendChild(colorWrap);
@@ -158,26 +166,38 @@ class DrawingBoard {
     // --- size ---
     const sizeWrap = document.createElement('label');
     sizeWrap.title = 'size';
-    sizeWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    sizeWrap.style.cssText =
+      'display:flex;align-items:center;gap:6px;';
+
     const sizeLabel = document.createElement('span');
     this.sizeInput = document.createElement('input');
     this.sizeInput.type = 'range';
     this.sizeInput.min = this.opts.minSize;
     this.sizeInput.max = this.opts.maxSize;
     this.sizeInput.value = this.size;
-    this.sizeInput.style.cssText = 'width: 8px; height: 90px; cursor: pointer; writing-mode: vertical-lr; direction: rtl;';
+    this.sizeInput.style.cssText = `
+      width: 8px;
+      height: 90px;
+      cursor: pointer;
+      writing-mode: vertical-lr;
+      direction: rtl;
+    `;
+
     this.sizeValue = document.createElement('span');
     this.sizeValue.textContent = this.size;
-    this.sizeValue.style.cssText = 'min-width: 18px; text-align: center; opacity: .8;';
-    this.sizeInput.addEventListener('input', () => {
+    this.sizeValue.style.cssText =
+      'min-width:18px;text-align:center;opacity:.8;';
+
+    this.sizeInput.addEventListener('input', (e) => {
       e.stopPropagation();
-      this.size = Number(this.sizeInput.value);
-      this.sizeValue.textContent = this.size;
+      this.setSize(Number(this.sizeInput.value));
     });
+
     sizeWrap.appendChild(sizeLabel);
     sizeWrap.appendChild(this.sizeInput);
     bar.appendChild(this.sizeValue);
     bar.appendChild(sizeWrap);
+
 
     // --- undo / redo / clear ---
     this.undoBtn = mkBtn('↶', 'undo (Ctrl+Z)', () => this.undo());
