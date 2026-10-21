@@ -933,6 +933,83 @@
 			color: var(--muted);
 			border-top: 1px solid var(--border);
 		}
+
+		.openSetSettings {
+			width: 42px;
+			height: 42px;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			gap: 5px;
+			border: 1px solid var(--border);
+			background: var(--surface);
+			border-radius: 8px;
+			cursor: pointer;
+		}
+
+		.openSetSettings span {
+			width: 20px;
+			height: 2px;
+			background: white;
+			border-radius: 2px;
+		}
+
+		#settingsSetOverlay {
+			display: none;
+			position: fixed;
+			inset: 0;
+			z-index: 99999;
+			background: rgba(0, 0, 0, 0.75);
+			align-items: center;
+			justify-content: center;
+			padding: 16px;
+		}
+
+		/* Popup */
+		#settingsSetPopup {
+			width: 100%;
+			max-width: 400px;
+			max-height: 90dvh;
+			border-radius: 16px;
+			overflow-y: auto;
+			padding: 6px 20px 20px;
+			background: var(--surface);
+			color: var(--text);
+		}
+
+		#closeSetSettings {
+			border: none;
+			background: transparent;
+			color: white;
+			font-size: 22px;
+			cursor: pointer;
+		}
+
+		.settingsSetHeader {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-left: 6px;
+		}
+
+		.settingsSetOptions {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+
+		.settinSetgButton {
+			width: 100%;
+			padding: 14px 16px;
+			border: 1px solid #41424c;
+			border-radius: 8px;
+			background: #30313a;
+			color: white;
+			font-size: 15px;
+			text-align: left;
+			cursor: pointer;
+		}
 	</style>
 </head>
 
@@ -957,7 +1034,11 @@
 		<header class="topbar">
 			<button class="icon-btn" id="btnBackSets">←</button>
 			<input class="name-input" id="setNameInput" placeholder="Set name">
-			<button class="icon-btn" id="btnDeleteSet">🗑</button>
+			<button id="openSetSettings" class="openSetSettings" aria-label="Open settings">
+				<span></span>
+				<span></span>
+				<span></span>
+			</button>
 		</header>
 
 		<div class="lang-row">
@@ -1025,6 +1106,10 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 					<button data-v="source">Source first</button>
 					<button data-v="target">Meaning first</button>
 				</div>
+				<div class="switch-row">
+					<span>Show back card first</span>
+					<button class="switch" id="optShowBack"></button>
+				</div>
 			</div>
 
 			<div class="field">
@@ -1049,10 +1134,17 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			</div>
 
 			<div class="field">
-				<label>Audio mode</label>
 				<div class="switch-row">
 					<span>Hide content, listen only</span>
 					<button class="switch" id="optAudio"></button>
+				</div>
+				<div class="switch-row">
+					<span>Show drawing board over card on start</span>
+					<button class="switch" id="optDrawBoardOnStart"></button>
+				</div>
+				<div class="switch-row">
+					<span>Show example on start</span>
+					<button class="switch" id="optExampleOnStart"></button>
 				</div>
 			</div>
 
@@ -1096,7 +1188,6 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 		</div>
 	</div>
 
-	<!-- NEW: generic confirm sheet -->
 	<div class="sheet" id="sheetConfirm">
 		<div class="sheet-backdrop" data-close></div>
 		<div class="sheet-panel">
@@ -1104,8 +1195,23 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			<h3 id="confirmTitle">Confirm</h3>
 			<p id="confirmMessage" style="color:var(--muted);font-size:14.5px;line-height:1.6;margin:0 0 22px;"></p>
 			<div class="act-row">
-				<button class="btn ghost flex1" id="confirmCancel">Cancel</button>
 				<button class="btn primary flex1" id="confirmOk">OK</button>
+				<button class="btn ghost flex1" id="confirmCancel">Cancel</button>
+			</div>
+		</div>
+	</div>
+
+	<div id="settingsSetOverlay">
+		<div id="settingsSetPopup">
+			<div class="settingsSetHeader">
+				<h3>Settings</h3>
+				<button id="closeSetSettings" aria-label="Close settings">✕</button>
+			</div>
+
+			<div class="settingsSetOptions">
+				<button class="settinSetgButton" id="btnDeleteSet"><span style="color:red">Delete</span></button>
+				<button class="settinSetgButton" id="btnExportSetCsv">Export CSV</button>
+				<button class="settinSetgButton" id="btnCopySetCsv">Copy CSV to Clipboard</button>
 			</div>
 		</div>
 	</div>
@@ -1135,11 +1241,15 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 
 		/* ================= STATE ================= */
 		const STORE_KEY = 'flashcards.v1';
-		const state = { sets: [], currentSetId: null, session: null };
+		const state = { 
+			sets: [], 
+			studyOptions: defaultOptions(),
+			currentSetId: null, 
+			session: null 
+		};
 		let pendingOpts = null;
 		let editingCardId = null;
 		let csvHeaderSkip = false;
-		let speakCtx = null;
 		let deferredInstall = null;
 		let drawingBoard = new DrawingBoard('#drawingBoard');
 
@@ -1151,7 +1261,17 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 		const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 		function defaultOptions() {
-			return { direction: 'source', order: 'down', batch: 5, audioMode: true, autoRead: true, readWhat: 'example' };
+			return { 
+				direction: 'source', 
+				order: 'down', 
+				batch: 5, 
+				audioMode: true, 
+				autoRead: true, 
+				readWhat: 'example', 
+				showBack: false, 
+				showExampleOnStart: false, 
+				drawBoardOnStart: false 
+			};
 		}
 
 		/* ================= PWA ================= */
@@ -1265,15 +1385,23 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 							name: s.name || 'New set',
 							sourceLang: s.sourceLang || 'en-US',
 							targetLang: s.targetLang || 'vi-VN',
-							cards: Array.isArray(s.cards) ? s.cards : [],
-							options: Object.assign(defaultOptions(), s.options || {})
+							cards: Array.isArray(s.cards) ? s.cards : []
 						}));
+					}
+					if (d && d.studyOptions) {
+						state.studyOptions = Object.assign(defaultOptions(), d.studyOptions);
 					}
 				}
 			} catch (e) { console.warn(e); }
 		}
+		
 		function save() {
-			try { localStorage.setItem(STORE_KEY, JSON.stringify({ sets: state.sets })); }
+			try { 
+				localStorage.setItem(STORE_KEY, JSON.stringify({ 
+					sets: state.sets, 
+					studyOptions: state.studyOptions 
+				})); 
+			}
 			catch (e) { console.warn('save failed', e); }
 		}
 
@@ -1332,7 +1460,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 		function createSet() {
 			const s = {
 				id: uid(), name: 'New set', sourceLang: 'en-US', targetLang: 'vi-VN',
-				cards: [], options: defaultOptions()
+				cards: []
 			};
 			state.sets.unshift(s);
 			save();
@@ -1398,7 +1526,6 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 
 		/* ================= SPEAK SHEET (word list only) ================= */
 		function openSpeakSheet(card, set) {
-			speakCtx = { card, set };
 			const items = [
 				{ key: 'term', label: 'Term', lang: set.sourceLang, enabled: !!card.term },
 				{ key: 'meaning', label: 'Meaning', lang: set.targetLang, enabled: !!card.meaning },
@@ -1486,6 +1613,48 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			return rows.filter(r => r.some(cell => String(cell).trim() !== ''));
 		}
 
+		function escapeCSVField(value) {
+			const text = String(value ?? '');
+			return '"' + text.replace(/"/g, '""') + '"';
+		}
+
+		function generateSetCSV(set) {
+			const rows = set.cards.map(card => [
+				card.term || '',
+				card.meaning || '',
+				card.example || '',
+				card.exampleTrans || ''
+			]);
+
+			return rows
+				.map(row => row.map(escapeCSVField).join(','))
+				.join('\r\n');
+		}
+
+		function exportSetCSV() {
+			const set = getSet(state.currentSetId);
+			if (!set) return;
+
+			const csv = '\uFEFF' + generateSetCSV(set);
+			const blob = new Blob([csv], {
+				type: 'text/csv;charset=utf-8;'
+			});
+
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+
+			link.href = url;
+			link.download = (set.name || 'flashcards')
+				.replace(/[\\/:*?"<>|]/g, '_') + '.csv';
+
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+
+			setTimeout(() => URL.revokeObjectURL(url), 1000);
+			toast('CSV exported successfully');
+		}
+
 		function importCSV() {
 			const raw = $('csvInput').value;
 			if (!raw.trim()) return;
@@ -1520,6 +1689,35 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			if (added) toast(`Added ${added} cards`);
 		}
 
+		async function copySetCSV() {
+			const set = getSet(state.currentSetId);
+			if (!set) return;
+
+			const csv = generateSetCSV(set);
+
+			try {
+				await navigator.clipboard.writeText(csv);
+				toast('CSV copied to clipboard');
+			} catch (error) {
+				const textarea = document.createElement('textarea');
+				textarea.value = csv;
+				textarea.style.position = 'fixed';
+				textarea.style.opacity = '0';
+
+				document.body.appendChild(textarea);
+				textarea.select();
+
+				const success = document.execCommand('copy');
+				textarea.remove();
+
+				if (success) {
+					toast('CSV copied to clipboard');
+				} else {
+					toast('Copy failed. Please use Export CSV.');
+				}
+			}
+		}
+
 		function toast(msg) {
 			const el = document.createElement('div');
 			el.textContent = msg;
@@ -1537,11 +1735,6 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 		}
 
 		/* ================= SPEECH ================= */
-		function initVoices() {
-			if (!('speechSynthesis' in window)) return;
-			speechSynthesis.getVoices();
-			speechSynthesis.onvoiceschanged = () => { };
-		}
 		function speak(text, lang) {
 			if (!text) return;
 			if (!('speechSynthesis' in window)) { toast('Speech not supported'); return; }
@@ -1569,13 +1762,20 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			speak(card[field], lang);
 		}
 
+		/* ================= Set Setting ================= */
+		function openSetSettings(e) {
+			e.stopPropagation();
+			$('settingsSetOverlay').style.display = 'flex';
+		}
+
+		function closeSetSettings(e) {
+			e.stopPropagation();
+			$('settingsSetOverlay').style.display = 'none';
+		}
+
 		/* ================= OPTIONS SHEET ================= */
 		function openOptionsSheet(inStudy) {
-			const set = inStudy && state.session
-				? getSet(state.session.setId)
-				: getSet(state.currentSetId);
-			if (!set) return;
-			pendingOpts = Object.assign({}, set.options);
+			pendingOpts = Object.assign({}, state.studyOptions);
 			syncOptionsUI();
 			$('optionsTitle').textContent = inStudy ? 'Change study options' : 'Study options';
 			$('btnBegin').textContent = inStudy ? 'Apply' : 'Start';
@@ -1590,6 +1790,9 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			setChipActive('optReadWhat', pendingOpts.readWhat);
 			$('optAudio').classList.toggle('on', !!pendingOpts.audioMode);
 			$('optAutoRead').classList.toggle('on', !!pendingOpts.autoRead);
+			$('optDrawBoardOnStart').classList.toggle('on', !!pendingOpts.drawBoardOnStart);
+			$('optExampleOnStart').classList.toggle('on', !!pendingOpts.showExampleOnStart);
+			$('optShowBack').classList.toggle('on', !!pendingOpts.showBack);
 		}
 
 		function setChipActive(groupId, value) {
@@ -1648,9 +1851,9 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 		function beginStudy() {
 			const set = getSet(state.currentSetId);
 			if (!set || !set.cards.length) return;
-			if (pendingOpts) { set.options = Object.assign({}, pendingOpts); save(); }
+			if (pendingOpts) { state.studyOptions = Object.assign({}, pendingOpts); save(); }
 
-			const o = set.options;
+			const o = state.studyOptions;
 			let queue = set.cards.slice();
 			if (o.order === 'up') queue.reverse();
 			else if (o.order === 'random') shuffle(queue);
@@ -1659,11 +1862,11 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 				setId: set.id,
 				queue,
 				pos: 0,
-				stage: 'front',
-				showExample: false,
+				stage: o.showBack ? 'back' : 'front',
+				showExample: !!o.showExampleOnStart,
 				batch: Math.max(1, o.batch),
 				batchStart: 0,
-				batchStarts: [0],   // NEW: history stack of batch start positions
+				batchStarts: [0],
 				done: null,
 				remembered: new Set(),
 				forgotten: new Set()
@@ -1681,13 +1884,13 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			const set = getSet(s.setId);
 			if (!set) return;
 
-			const oldOpts = set.options;
+			const oldOpts = state.studyOptions;
 			const newOpts = Object.assign({}, pendingOpts);
 
 			const orderChanged = oldOpts.order !== newOpts.order;
-			const directionChanged = oldOpts.direction !== newOpts.direction;
+			const directionChanged = oldOpts.direction !== newOpts.direction || oldOpts.showBack !== newOpts.showBack;
 
-			set.options = newOpts;
+			state.studyOptions = newOpts;
 			save();
 
 			if (orderChanged) {
@@ -1701,8 +1904,8 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			s.batch = Math.max(1, newOpts.batch);
 
 			if (directionChanged) {
-				s.stage = 'front';
-				s.showExample = false;
+				s.stage = newOpts.showBack ? 'back' : 'front';
+				s.showExample = !!newOpts.showExampleOnStart;
 			}
 
 			closeSheets();
@@ -1714,12 +1917,12 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			if (!s) return;
 			const set = getSet(s.setId);
 			if (!set) return;
-			const o = set.options;
+			const o = state.studyOptions;
 			const body = $('studyBody');
 			const actions = $('studyActions');
 
-			$('drawingBoard').style.display = 'none';
 			document.body.appendChild($('drawingBoard'));
+			$('drawingBoard').style.display = o.drawBoardOnStart ? 'block' : 'none';
 
 			$('studyTitle').textContent = set.name;
 
@@ -1779,17 +1982,15 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 						<button class="btn ghost" id="btnRedoBatch" style="flex:1">↺ Redo batch</button>
 					</div>`;
 
-				// Redo the same batch (works for the last batch too)
 				$('btnRedoBatch').onclick = () => {
 					batchCards.forEach(c => { s.remembered.delete(c.id); s.forgotten.delete(c.id); });
 					s.pos = s.batchStart;
-					s.stage = 'front';
-					s.showExample = false;
+					s.stage = o.showBack ? 'back' : 'front';
+					s.showExample = !!o.showExampleOnStart;
 					s.done = null;
 					renderStudy(true);
 				};
 
-				// Move to next batch, or jump to the final summary if this was the last batch
 				$('btnNextBatch').onclick = () => {
 					if (s.pos >= s.queue.length) {
 						s.done = 'all';
@@ -1813,7 +2014,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			const backText = frontIsTerm ? card.meaning : card.term;
 			const frontLang = frontIsTerm ? set.sourceLang : set.targetLang;
 			const backLang = frontIsTerm ? set.targetLang : set.sourceLang;
-			const drawingBoardButton = 
+			const drawingBoardButton =
 				`<button id="toggleDrawBtn" title="openDrawingTool" style="position:absolute;right:12px;bottom:12px;width:44px;height:44px;border:0;border-radius:50%;background:#333;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;">
 					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
 						<path d="M12 3a9 9 0 1 0 0 18h1.5a2 2 0 0 0 1.5-3.3 1.8 1.8 0 0 1 1.4-3h1.1A4.5 4.5 0 0 0 22 10.2C22 6.2 17.5 3 12 3Z"/>
@@ -1830,15 +2031,15 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 
 			if (s.stage === 'front') {
 				if (o.audioMode) {
-					body.innerHTML = 
-					`<div class="flashcard audio-hidden" data-action="flip">
+					body.innerHTML =
+						`<div class="flashcard audio-hidden" data-action="flip">
 						<div class="audio-icon">🔊</div>
 						<div class="hint">${o.autoRead ? 'Playing… tap to reveal' : 'Tap to reveal'}</div>
 						${drawingBoardButton}
 					</div>`;
 				} else {
-					body.innerHTML = 
-					`<div class="flashcard" data-action="flip">
+					body.innerHTML =
+						`<div class="flashcard" data-action="flip">
 						<div class="card-lang">${langShort(frontLang)}</div>
 						<div class="card-main">${esc(frontText)}</div>
 						<div class="hint">Tap to flip</div>
@@ -1896,8 +2097,6 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 					<button id="btnListenExample" ${card.example ? '' : 'disabled'}>🔊 Example</button>
 				</div>`;
 
-			// Prev is disabled only at the very first card of the whole session.
-			// At the first card of any later batch, it is enabled and triggers a confirm popup.
 			const prevDisabled = (s.pos === 0);
 			const navRow = `
 				<div class="act-row">
@@ -1914,7 +2113,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			$('btnListenExample').onclick = () => speakField('example');
 			$('btnListenExTrans').onclick = () => speakField('exampleTrans');
 			$('btnPrev').onclick = prevCard;
-			$('btnNext').onclick = () => { s.showExample = false; nextCard(); };
+			$('btnNext').onclick = () => { s.showExample = !!o.showExampleOnStart; nextCard(); };
 			$('btnForget').onclick = () => recordAnswer(false);
 			$('btnRemember').onclick = () => recordAnswer(true);
 
@@ -1928,7 +2127,6 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			const s = state.session;
 			if (!s || s.done) return;
 			s.stage = s.stage === 'front' ? 'back' : 'front';
-			s.showExample = false;
 			renderStudy(false);
 		}
 
@@ -1946,19 +2144,17 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			nextCard();
 		}
 
-		/* ============ FIX #1: batch boundary takes priority over queue end ============ */
 		function nextCard() {
 			drawingBoard.clear();
 			const s = state.session;
+			const o = state.studyOptions;
 			s.pos++;
-			s.stage = 'front';
-			s.showExample = false;
+			s.stage = o.showBack ? 'back' : 'front';
+			s.showExample = !!o.showExampleOnStart;
 
 			const batchFull = (s.pos - s.batchStart) >= s.batch;
 			const queueEnd = s.pos >= s.queue.length;
 
-			// Even when the queue ends exactly on a batch boundary, still show the
-			// batch-complete screen so the last batch can be redone.
 			if (batchFull || queueEnd) {
 				s.done = 'batch';
 				renderStudy(false);
@@ -1967,28 +2163,24 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			renderStudy(true);
 		}
 
-		/* ============ FIX #2: prev respects batch boundaries ============ */
 		function prevCard() {
 			drawingBoard.clear();
 			const s = state.session;
+			const o = state.studyOptions;
 			if (!s || s.done) return;
 
-			// Normal back navigation inside the current batch
 			if (s.pos > s.batchStart) {
 				s.pos--;
-				s.stage = 'front';
-				s.showExample = false;
+				s.stage = o.showBack ? 'back' : 'front';
+				s.showExample = !!o.showExampleOnStart;
 				renderStudy(true);
 				return;
 			}
 
-			// At the first card of the current batch
 			if (s.batchStarts.length <= 1) {
-				// Already at the first card of the very first batch — nothing to do
 				return;
 			}
 
-			// Ask the user if they want to replay the previous batch
 			showConfirm(
 				'Replay previous batch?',
 				'You are at the first card of this batch. Go back and study the previous batch from the start?',
@@ -1996,8 +2188,8 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 					s.batchStarts.pop();
 					s.batchStart = s.batchStarts[s.batchStarts.length - 1];
 					s.pos = s.batchStart;
-					s.stage = 'front';
-					s.showExample = false;
+					s.stage = o.showBack ? 'back' : 'front';
+					s.showExample = !!o.showExampleOnStart;
 					renderStudy(true);
 				},
 				'Replay'
@@ -2014,7 +2206,6 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 		function init() {
 			load();
 			initLangSelects();
-			initVoices();
 			setupPWA();
 			setupInstallPrompt();
 
@@ -2044,6 +2235,8 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 					save(); showView('sets');
 				}
 			};
+			$('btnExportSetCsv').onclick = exportSetCSV;
+			$('btnCopySetCsv').onclick = copySetCSV;
 
 			$('btnStart').onclick = () => openOptionsSheet(false);
 
@@ -2070,14 +2263,24 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 				pendingOpts.autoRead = !pendingOpts.autoRead;
 				e.currentTarget.classList.toggle('on', pendingOpts.autoRead);
 			};
+			$('optDrawBoardOnStart').onclick = e => {
+				pendingOpts.drawBoardOnStart = !pendingOpts.drawBoardOnStart;
+				e.currentTarget.classList.toggle('on', pendingOpts.drawBoardOnStart);
+			};
+			$('optExampleOnStart').onclick = e => {
+				pendingOpts.showExampleOnStart = !pendingOpts.showExampleOnStart;
+				e.currentTarget.classList.toggle('on', pendingOpts.showExampleOnStart);
+			};
+			$('optShowBack').onclick = e => {
+				pendingOpts.showBack = !pendingOpts.showBack;
+				e.currentTarget.classList.toggle('on', pendingOpts.showBack);
+			};
 			$('btnBegin').onclick = () => {
 				const inStudy = $('btnBegin').dataset.inStudy === '1';
 				if (inStudy) {
 					applyOptionsLive();
 				} else {
-					const set = getSet(state.currentSetId);
-					if (!set) return;
-					set.options = Object.assign({}, pendingOpts);
+					state.studyOptions = Object.assign({}, pendingOpts);
 					save();
 					beginStudy();
 				}
@@ -2096,6 +2299,11 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			document.querySelectorAll('[data-close]').forEach(el => {
 				el.onclick = () => closeSheets();
 			});
+
+			$('openSetSettings').onclick = openSetSettings;
+			$('closeSetSettings').onclick = closeSetSettings;
+			$('settingsSetOverlay').onclick = closeSetSettings;
+
 
 			renderSets();
 		}
