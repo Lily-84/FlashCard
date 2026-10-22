@@ -2117,7 +2117,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			$('btnForget').onclick = () => recordAnswer(false);
 			$('btnRemember').onclick = () => recordAnswer(true);
 
-			if (autoSpeak && o.audioMode && o.autoRead && s.stage === 'front') {
+			if (autoSpeak && o.audioMode && o.autoRead) {
 				const what = o.readWhat || 'term';
 				setTimeout(() => speakField(what), 200);
 			}
