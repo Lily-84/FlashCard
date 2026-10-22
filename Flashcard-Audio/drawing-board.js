@@ -19,7 +19,7 @@ class DrawingBoard {
       {
         background: '#000000',
         penColor: '#ffffff',
-        penSize: 4,
+        penSize: 9,
         minSize: 1,
         maxSize: 40,
       },
@@ -91,7 +91,7 @@ class DrawingBoard {
     bar.style.cssText = `
       position: absolute;
       top: 14px;
-      left: 14px;
+      right: 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
