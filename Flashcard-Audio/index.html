@@ -1106,10 +1106,6 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 					<button data-v="source">Source first</button>
 					<button data-v="target">Meaning first</button>
 				</div>
-				<div class="switch-row">
-					<span>Show back card first</span>
-					<button class="switch" id="optShowBack"></button>
-				</div>
 			</div>
 
 			<div class="field">
@@ -1134,6 +1130,10 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			</div>
 
 			<div class="field">
+				<div class="switch-row">
+					<span>Show back card first</span>
+					<button class="switch" id="optShowBack"></button>
+				</div>
 				<div class="switch-row">
 					<span>Hide content, listen only</span>
 					<button class="switch" id="optAudio"></button>
@@ -1950,7 +1950,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 						<button class="btn ghost" id="btnBackSet" style="flex:1">Back to set</button>
 						<button class="btn primary" id="btnRestart" style="flex:1">Study again</button>
 					</div>`;
-				$('btnBackSet').onclick = () => { state.session = null; openSet(set.id); };
+				$('btnBackSet').onclick = () => { state.session = null; openSet(set.id); $('drawingBoard').style.display = 'none'; };
 				$('btnRestart').onclick = () => beginStudy();
 				return;
 			}
@@ -2015,7 +2015,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			const frontLang = frontIsTerm ? set.sourceLang : set.targetLang;
 			const backLang = frontIsTerm ? set.targetLang : set.sourceLang;
 			const drawingBoardButton =
-				`<button id="toggleDrawBtn" title="openDrawingTool" style="position:absolute;right:0px;bottom:0px;width:44px;height:44px;border:0;border-radius:50%;background:#333;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;">
+				`<button id="toggleDrawBtn" title="openDrawingTool" style="position:absolute;right:0px;top:10px;width:44px;height:44px;border:0;border-radius:50%;background:#333;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;">
 					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
 						<path d="M12 3a9 9 0 1 0 0 18h1.5a2 2 0 0 0 1.5-3.3 1.8 1.8 0 0 1 1.4-3h1.1A4.5 4.5 0 0 0 22 10.2C22 6.2 17.5 3 12 3Z"/>
 						<circle cx="7.5" cy="10" r="1" fill="currentColor"/>
@@ -2211,7 +2211,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 
 			$('btnNewSet').onclick = createSet;
 
-			$('btnBackSets').onclick = () => { state.session = null; showView('sets'); };
+			$('btnBackSets').onclick = () => { state.session = null; showView('sets'); $('drawingBoard').style.display = 'none';};
 
 			$('setNameInput').addEventListener('input', e => {
 				const set = getSet(state.currentSetId);
@@ -2291,6 +2291,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			$('btnExitStudy').onclick = () => {
 				const sid = state.session ? state.session.setId : state.currentSetId;
 				state.session = null;
+				$('drawingBoard').style.display = 'none';
 				if ('speechSynthesis' in window) speechSynthesis.cancel();
 				openSet(sid);
 			};

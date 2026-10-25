@@ -88,69 +88,87 @@ class DrawingBoard {
    * ========================================================= */
   _buildToolbar() {
     const bar = document.createElement('div');
+
     bar.style.cssText = `
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 8px;
-      background: rgba(25,25,32,.92);
-      border: 1px solid #333;
-      border-radius: 12px;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 6px 24px rgba(0,0,0,.5);
-      font: 13px system-ui, sans-serif;
-      color: #ddd;
-      user-select: none;
-      z-index: 10;
+        position: absolute;
+        bottom: 14px;
+        left: 50%;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        background: rgba(25,25,32,.92);
+        border: 1px solid #333;
+        border-radius: 12px;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 6px 24px rgba(0,0,0,.5);
+        font: 13px system-ui, sans-serif;
+        color: #ddd;
+        user-select: none;
+        white-space: nowrap;
+        z-index: 10;
+        width: max-content;
+        transform-origin: bottom center;
     `;
 
     const mkBtn = (label, title, onClick) => {
       const b = document.createElement('button');
       b.textContent = label;
       b.title = title;
+
       b.style.cssText = `
-        background: #2a2a34;
-        color: #eee;
-        border: 1px solid #3a3a46;
-        padding: 6px 10px;
-        border-radius: 8px;
-        cursor: pointer;
-        font: inherit;
-        line-height: 1;
-      `;
+            flex-shrink: 0;
+            background: #2a2a34;
+            color: #eee;
+            border: 1px solid #3a3a46;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font: inherit;
+            line-height: 1;
+        `;
+
       b.addEventListener('click', onClick);
-      b.addEventListener('mouseenter', () => (b.style.background = '#353543'));
-      b.addEventListener('mouseleave', () => (b.style.background = '#2a2a34'));
+      b.addEventListener('mouseenter', () => {
+        b.style.background = '#353543';
+      });
+      b.addEventListener('mouseleave', () => {
+        b.style.background = '#2a2a34';
+      });
+
       return b;
     };
 
-    // --- tool: pen / eraser ---
+    // --- Tool: pen / eraser ---
     this.penBtn = mkBtn('✏️', 'Pen', () => this.setTool('pen'));
     this.eraserBtn = mkBtn('🧽', 'Eraser (E)', () => this.setTool('eraser'));
+
     bar.appendChild(this.penBtn);
     bar.appendChild(this.eraserBtn);
 
-
-    // --- color ---
+    // --- Color ---
     const colorWrap = document.createElement('label');
-    colorWrap.title = 'color';
-    colorWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    colorWrap.title = 'Color';
+    colorWrap.style.cssText = `
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 6px;
+    `;
 
-    const colorLabel = document.createElement('span');
     this.colorInput = document.createElement('input');
     this.colorInput.type = 'color';
     this.colorInput.value = this.color;
+
     this.colorInput.style.cssText = `
-      width: 28px;
-      height: 28px;
-      padding: 0;
-      border: none;
-      background: transparent;
-      cursor: pointer;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        cursor: pointer;
     `;
 
     this.colorInput.addEventListener('input', (e) => {
@@ -159,56 +177,91 @@ class DrawingBoard {
       this.setTool('pen');
     });
 
-    colorWrap.appendChild(colorLabel);
     colorWrap.appendChild(this.colorInput);
     bar.appendChild(colorWrap);
 
-    // --- size ---
+    // --- Size ---
     const sizeWrap = document.createElement('label');
-    sizeWrap.title = 'size';
-    sizeWrap.style.cssText =
-      'display:flex;align-items:center;gap:6px;';
+    sizeWrap.title = 'Size';
+    sizeWrap.style.cssText = `
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 6px;
+    `;
 
-    const sizeLabel = document.createElement('span');
     this.sizeInput = document.createElement('input');
     this.sizeInput.type = 'range';
     this.sizeInput.min = this.opts.minSize;
     this.sizeInput.max = this.opts.maxSize;
     this.sizeInput.value = this.size;
+
     this.sizeInput.style.cssText = `
-      width: 8px;
-      height: 90px;
-      cursor: pointer;
-      writing-mode: vertical-lr;
-      direction: rtl;
+        width: 90px;
+        height: 18px;
+        flex-shrink: 0;
+        cursor: pointer;
     `;
 
     this.sizeValue = document.createElement('span');
     this.sizeValue.textContent = this.size;
-    this.sizeValue.style.cssText =
-      'min-width:18px;text-align:center;opacity:.8;';
+
+    this.sizeValue.style.cssText = `
+        min-width: 18px;
+        text-align: center;
+        opacity: .8;
+    `;
 
     this.sizeInput.addEventListener('input', (e) => {
       e.stopPropagation();
       this.setSize(Number(this.sizeInput.value));
     });
 
-    sizeWrap.appendChild(sizeLabel);
     sizeWrap.appendChild(this.sizeInput);
+
     bar.appendChild(this.sizeValue);
     bar.appendChild(sizeWrap);
 
+    // --- Undo / redo / clear ---
+    this.undoBtn = mkBtn('↶', 'Undo (Ctrl+Z)', () => this.undo());
+    this.redoBtn = mkBtn('↷', 'Redo (Ctrl+Shift+Z)', () => this.redo());
+    this.clearBtn = mkBtn('🗑', 'Clear (Ctrl+Shift+X)', () => this.clear());
 
-    // --- undo / redo / clear ---
-    this.undoBtn = mkBtn('↶', 'undo (Ctrl+Z)', () => this.undo());
-    this.redoBtn = mkBtn('↷', 'redo (Ctrl+Shift+Z)', () => this.redo());
-    this.clearBtn = mkBtn('🗑', 'clear (Ctrl+Shift+X)', () => this.clear());
     bar.appendChild(this.undoBtn);
     bar.appendChild(this.redoBtn);
     bar.appendChild(this.clearBtn);
 
+    // --- Add toolbar ---
     this.container.appendChild(bar);
     this.toolbar = bar;
+
+    // --- Auto scale to fit drawing board ---
+    this._resizeToolbar = () => {
+      // Chiều rộng thực tế của bảng vẽ
+      const containerWidth = this.container.clientWidth;
+      const toolbarWidth = bar.offsetWidth;
+
+      if (containerWidth <= 0 || toolbarWidth <= 0) {
+        return;
+      }
+      const availableWidth = Math.max(0, containerWidth - 16);
+      const scale = Math.min(1, availableWidth / toolbarWidth);
+
+      bar.style.transform = `translateX(-50%) scale(${scale})`;
+    };
+    requestAnimationFrame(() => {
+      this._resizeToolbar();
+    });
+    if (this._toolbarResizeObserver) {
+      this._toolbarResizeObserver.disconnect();
+    }
+
+    this._toolbarResizeObserver = new ResizeObserver(() => {
+      this._resizeToolbar();
+    });
+
+    this._toolbarResizeObserver.observe(this.container);
+    window.addEventListener('resize', this._resizeToolbar);
 
     this._refreshToolButtons();
     this._refreshHistoryButtons();
