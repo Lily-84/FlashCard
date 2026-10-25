@@ -1912,7 +1912,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			renderStudy(true);
 		}
 
-		function renderStudy(autoSpeak) {
+		function renderStudy(autoSpeak, isResetDrawingBoardState = true) {
 			const s = state.session;
 			if (!s) return;
 			const set = getSet(s.setId);
@@ -1922,7 +1922,9 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			const actions = $('studyActions');
 
 			document.body.appendChild($('drawingBoard'));
-			$('drawingBoard').style.display = o.drawBoardOnStart ? 'block' : 'none';
+			if (isResetDrawingBoardState) {
+				$('drawingBoard').style.display = o.drawBoardOnStart ? 'block' : 'none';
+			}
 
 			$('studyTitle').textContent = set.name;
 
@@ -2015,7 +2017,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			const frontLang = frontIsTerm ? set.sourceLang : set.targetLang;
 			const backLang = frontIsTerm ? set.targetLang : set.sourceLang;
 			const drawingBoardButton =
-				`<button id="toggleDrawBtn" title="openDrawingTool" style="position:absolute;right:0px;top:10px;width:44px;height:44px;border:0;border-radius:50%;background:#333;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;">
+				`<button id="toggleDrawBtn" title="openDrawingTool" style="position:absolute;right:0px;bottom:10px;width:44px;height:44px;border:0;border-radius:50%;background:#333;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;">
 					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
 						<path d="M12 3a9 9 0 1 0 0 18h1.5a2 2 0 0 0 1.5-3.3 1.8 1.8 0 0 1 1.4-3h1.1A4.5 4.5 0 0 0 22 10.2C22 6.2 17.5 3 12 3Z"/>
 						<circle cx="7.5" cy="10" r="1" fill="currentColor"/>
@@ -2127,7 +2129,7 @@ book,quyển sách,This is my book,Đây là sách của tôi'></textarea>
 			const s = state.session;
 			if (!s || s.done) return;
 			s.stage = s.stage === 'front' ? 'back' : 'front';
-			renderStudy(false);
+			renderStudy(false, false);
 		}
 
 		function recordAnswer(remembered) {

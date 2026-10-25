@@ -91,7 +91,7 @@ class DrawingBoard {
 
     bar.style.cssText = `
         position: absolute;
-        bottom: 14px;
+        top: 14px;
         left: 50%;
         display: flex;
         flex-direction: row;
